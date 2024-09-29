@@ -1,12 +1,13 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
-import { Product, ProductDoc } from "@ebazdev/product";
+import { Product, ProductDoc, Promo, PromoDoc } from "@ebazdev/product";
 import { IntegrationCustomerIds } from "../shared/models/cola-customer-names";
-import { ColaPromoPublisher } from "../events/publisher/promo-created-publisher";
+import { ColaPromoPublisher } from "../events/publisher/cola-promo-created-publisher";
+import { ColaPromoUpdatedPublisher } from "../events/publisher/cola-promo-updated-publisher";
 import { StatusCodes } from "http-status-codes";
 import { natsWrapper } from "../nats-wrapper";
 import {
-  Promo,
+  PromoDetails,
   promoProducts,
   giftProducts,
   promoTradeshops,
@@ -53,7 +54,7 @@ router.get("/promo-list", async (req: Request, res: Response) => {
     );
 
     const promoData = promosResponse?.data || {};
-    const promoList: Promo[] = promoData.promo_main;
+    const promoList: PromoDetails[] = promoData.promo_main;
 
     if (promoList.length === 0) {
       throw new Error("No promos found.");
@@ -64,7 +65,6 @@ router.get("/promo-list", async (req: Request, res: Response) => {
     const promoTradeshops: promoTradeshops[] = promoData.promo_tradeshops || [];
 
     for (const promo of promoList) {
-
       const matchProducts = promoProducts.find(
         (p) => p.PromoID === promo.promoid
       );
@@ -86,26 +86,73 @@ router.get("/promo-list", async (req: Request, res: Response) => {
       promo.products = await fetchEbazaarProductIds(promo.colaProducts);
       promo.giftProducts = await fetchEbazaarProductIds(promo.colaGiftProducts);
 
-      await new ColaPromoPublisher(natsWrapper.client).publish({
-        name: promo.promoname,
-        customerId: IntegrationCustomerIds.cocaCola,
-        startDate: promo.startdate,
-        endDate: promo.enddate,
-        thresholdQuantity: promo.tresholdquantity,
-        promoPercent: promo.promopercent,
-        giftQuantity: promo.giftquantity,
-        isActive: promo.isactive,
-        tradeshops: promo.colaTradeshops,
-        products: promo.products,
-        giftProducts: promo.giftProducts,
+      const existingPromo = (await Promo.findOne({
         thirdPartyPromoId: promo.promoid,
-        thirdPartyPromoTypeId: promo.promotypeid,
-        thirdPartyPromoType: promo.promotype,
-        thirdPartyPromoTypeCode: promo.promotypebycode,
-        colaProducts: promo.colaProducts,
-        colaGiftProducts: promo.colaGiftProducts,
-        colaTradeshops: promo.colaTradeshops,
-      });
+      })) as PromoDoc;
+
+      if (existingPromo) {
+        const hasChanges =
+          existingPromo.name !== promo.promoname ||
+          existingPromo.startDate.getTime() !==
+            new Date(promo.startdate).getTime() ||
+          existingPromo.endDate.getTime() !==
+            new Date(promo.enddate).getTime() ||
+          existingPromo.thresholdQuantity !== promo.tresholdquantity ||
+          existingPromo.promoPercent !== promo.promopercent ||
+          existingPromo.giftQuantity !== promo.giftquantity ||
+          existingPromo.isActive !== promo.isactive ||
+          existingPromo.thirdPartyPromoTypeId !== promo.promotypeid ||
+          existingPromo.thirdPartyPromoType !== promo.promotype ||
+          existingPromo.thirdPartyPromoTypeByCode !== promo.promotypebycode ||
+          !arraysEqual(existingPromo.products, promo.products) ||
+          !arraysEqual(existingPromo.giftProducts, promo.giftProducts) ||
+          !arraysEqual(existingPromo.tradeshops, promo.colaTradeshops);
+
+        if (hasChanges) {
+          await new ColaPromoUpdatedPublisher(natsWrapper.client).publish({
+            id: existingPromo.id.toString(),
+            name: promo.promoname,
+            customerId: IntegrationCustomerIds.cocaCola,
+            startDate: promo.startdate,
+            endDate: promo.enddate,
+            thresholdQuantity: promo.tresholdquantity,
+            promoPercent: promo.promopercent,
+            giftQuantity: promo.giftquantity,
+            isActive: promo.isactive,
+            tradeshops: promo.colaTradeshops,
+            products: promo.products,
+            giftProducts: promo.giftProducts,
+            thirdPartyPromoId: promo.promoid,
+            thirdPartyPromoTypeId: promo.promotypeid,
+            thirdPartyPromoType: promo.promotype,
+            thirdPartyPromoTypeCode: promo.promotypebycode,
+            colaProducts: promo.colaProducts,
+            colaGiftProducts: promo.colaGiftProducts,
+            colaTradeshops: promo.colaTradeshops,
+          });
+        }
+      } else {
+        await new ColaPromoPublisher(natsWrapper.client).publish({
+          name: promo.promoname,
+          customerId: IntegrationCustomerIds.cocaCola,
+          startDate: promo.startdate,
+          endDate: promo.enddate,
+          thresholdQuantity: promo.tresholdquantity,
+          promoPercent: promo.promopercent,
+          giftQuantity: promo.giftquantity,
+          isActive: promo.isactive,
+          tradeshops: promo.colaTradeshops,
+          products: promo.products,
+          giftProducts: promo.giftProducts,
+          thirdPartyPromoId: promo.promoid,
+          thirdPartyPromoTypeId: promo.promotypeid,
+          thirdPartyPromoType: promo.promotype,
+          thirdPartyPromoTypeCode: promo.promotypebycode,
+          colaProducts: promo.colaProducts,
+          colaGiftProducts: promo.colaGiftProducts,
+          colaTradeshops: promo.colaTradeshops,
+        });
+      }
     }
 
     return res.status(StatusCodes.OK).send({ status: "success" });
@@ -121,7 +168,6 @@ router.get("/promo-list", async (req: Request, res: Response) => {
 const fetchEbazaarProductIds = async (
   thirdPartyIds: number[]
 ): Promise<any> => {
-
   if (thirdPartyIds && thirdPartyIds.length === 0) {
     return [];
   }
@@ -130,6 +176,13 @@ const fetchEbazaarProductIds = async (
   }).select("_id thirdPartyData.productId")) as ProductDoc[];
 
   return products.map((product) => product._id);
+};
+
+const arraysEqual = (arr1: any, arr2: any) => {
+  if (arr1.length !== arr2.length) return false;
+  return arr1.every((value: any, index: any) => {
+    return value.toString() === arr2[index].toString();
+  });
 };
 
 export { router as colaPromosRouter };

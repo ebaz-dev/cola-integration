@@ -3,14 +3,13 @@ import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { Product } from "@ebazdev/product";
 import { StatusCodes } from "http-status-codes";
 import axios from "axios";
-import { ColaNewProductPublisher } from "../events/publisher/product-created-publisher";
+import { ColaNewProductPublisher } from "../events/publisher/cola-product-created-publisher";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
 
 router.get("/product-list", async (req: Request, res: Response) => {
   try {
-    
     const {
       COLA_GET_TOKEN_URI,
       COLA_PRODUCTS_URI,
@@ -18,10 +17,7 @@ router.get("/product-list", async (req: Request, res: Response) => {
       COLA_PASSWORD,
     } = process.env.NODE_ENV === "development" ? process.env : process.env;
 
-    if (
-      !COLA_GET_TOKEN_URI ||
-      !COLA_PRODUCTS_URI
-    ) {
+    if (!COLA_GET_TOKEN_URI || !COLA_PRODUCTS_URI) {
       throw new BadRequestError("Cola credentials are missing.");
     }
 

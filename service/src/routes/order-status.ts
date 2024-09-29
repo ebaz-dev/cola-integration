@@ -4,7 +4,7 @@ import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Order } from "@ebazdev/order";
 import { colaOrderStatuses } from "../shared/models/cola-order-statuses";
-import { ColaOrderStatusPublisher } from "../events/publisher/order-status-recieved-publisher";
+import { ColaOrderStatusPublisher } from "../events/publisher/cola-order-status-recieved-publisher";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();

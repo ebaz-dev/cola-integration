@@ -1,6 +1,6 @@
 import { ObjectId } from "mongoose";
 
-interface Promo {
+interface PromoDetails {
   promoid: number;
   promoname: string;
   startdate: string;
@@ -35,4 +35,4 @@ interface promoTradeshops {
   Tradeshops: number[];
 }
 
-export { Promo, promoProducts, giftProducts, promoTradeshops };
+export { PromoDetails, promoProducts, giftProducts, promoTradeshops };
