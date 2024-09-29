@@ -16,7 +16,7 @@ router.get("/product-list", async (req: Request, res: Response) => {
       COLA_PRODUCTS_URI,
       COLA_USERNAME,
       COLA_PASSWORD,
-    } = process.env.NODE_ENV === "test" ? process.env : process.env;
+    } = process.env.NODE_ENV === "development" ? process.env : process.env;
 
     if (
       !COLA_GET_TOKEN_URI ||
