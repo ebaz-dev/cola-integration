@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
-import { BadRequestError } from "@ebazdev/core";
 import { Product, ProductDoc } from "@ebazdev/product";
 import { IntegrationCustomerNames } from "../shared/models/cola-customer-names";
 import { ColaPromoPublisher } from "../events/publisher/promo-created-publisher";
@@ -18,22 +17,22 @@ const router = express.Router();
 router.get("/promo-list", async (req: Request, res: Response) => {
   try {
     const {
-      COLA_GET_TOKEN_URL,
-      COLA_PROMOS_URL,
+      COLA_GET_TOKEN_URI,
+      COLA_PROMOS_URI,
       COLA_USERNAME,
       COLA_PASSWORD,
     } = process.env;
 
     if (
-      !COLA_GET_TOKEN_URL ||
-      !COLA_PROMOS_URL ||
+      !COLA_GET_TOKEN_URI ||
+      !COLA_PROMOS_URI ||
       !COLA_USERNAME ||
       !COLA_PASSWORD
     ) {
       throw new Error("Cola credentials are missing.");
     }
 
-    const tokenResponse = await axios.post(COLA_GET_TOKEN_URL, {
+    const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
       username: COLA_USERNAME,
       pass: COLA_PASSWORD,
     });
@@ -45,7 +44,7 @@ router.get("/promo-list", async (req: Request, res: Response) => {
     const token = tokenResponse.data.token;
 
     const promosResponse = await axios.post(
-      COLA_PROMOS_URL,
+      COLA_PROMOS_URI,
       {},
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -65,6 +64,7 @@ router.get("/promo-list", async (req: Request, res: Response) => {
     const promoTradeshops: promoTradeshops[] = promoData.promo_tradeshops || [];
 
     for (const promo of promoList) {
+
       const matchProducts = promoProducts.find(
         (p) => p.PromoID === promo.promoid
       );
@@ -79,7 +79,7 @@ router.get("/promo-list", async (req: Request, res: Response) => {
 
       promo.colaProducts = matchProducts ? matchProducts.Products : [];
       promo.colaGiftProducts = matchGiftProducts
-        ? matchGiftProducts.Products
+        ? matchGiftProducts.GiftProducts
         : [];
       promo.colaTradeshops = matchTradeshops ? matchTradeshops.Tradeshops : [];
 
@@ -121,8 +121,10 @@ router.get("/promo-list", async (req: Request, res: Response) => {
 const fetchEbazaarProductIds = async (
   thirdPartyIds: number[]
 ): Promise<any> => {
-  if (thirdPartyIds.length === 0) return [];
 
+  if (thirdPartyIds && thirdPartyIds.length === 0) {
+    return [];
+  }
   const products = (await Product.find({
     "thirdPartyData.productId": { $in: thirdPartyIds },
   }).select("_id thirdPartyData.productId")) as ProductDoc[];

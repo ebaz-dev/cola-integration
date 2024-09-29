@@ -27,7 +27,7 @@ interface promoProducts {
 
 interface giftProducts {
   PromoID: number;
-  Products: number[];
+  GiftProducts: number[];
 }
 
 interface promoTradeshops {

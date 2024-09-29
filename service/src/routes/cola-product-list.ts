@@ -10,28 +10,29 @@ const router = express.Router();
 
 router.get("/product-list", async (req: Request, res: Response) => {
   try {
+    
     const {
-      COLA_GET_TOKEN_URL,
-      COLA_PRODUCTS_URL,
+      COLA_GET_TOKEN_URI,
+      COLA_PRODUCTS_URI,
       COLA_USERNAME,
       COLA_PASSWORD,
     } = process.env;
 
     if (
-      !COLA_GET_TOKEN_URL ||
-      !COLA_PRODUCTS_URL
+      !COLA_GET_TOKEN_URI ||
+      !COLA_PRODUCTS_URI
     ) {
       throw new BadRequestError("Cola credentials are missing.");
     }
 
-    const tokenResponse = await axios.post(COLA_GET_TOKEN_URL, {
+    const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
       username: COLA_USERNAME,
       pass: COLA_PASSWORD,
     });
     const token = tokenResponse.data.token;
 
     const productsResponse = await axios.post(
-      COLA_PRODUCTS_URL,
+      COLA_PRODUCTS_URI,
       {},
       {
         headers: { Authorization: `Bearer ${token}` },
