@@ -20,19 +20,19 @@ interface Promo {
   tradeshops: string[];
 }
 
-interface ColaPromoProduct {
+interface promoProducts {
   PromoID: number;
   Products: number[];
 }
 
-interface ColaPromoGiftProduct {
+interface giftProducts {
   PromoID: number;
   Products: number[];
 }
 
-interface ColaPromoTradeshops {
+interface promoTradeshops {
   PromoID: number;
   Tradeshops: number[];
 }
 
-export { Promo, ColaPromoProduct, ColaPromoGiftProduct, ColaPromoTradeshops };
+export { Promo, promoProducts, giftProducts, promoTradeshops };

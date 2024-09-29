@@ -27,32 +27,48 @@ const start = async () => {
     throw new Error("NATS_CLUSTER_ID must be defined");
   }
 
-  if (!process.env.COLA_GET_TOKEN_URL) {
-    throw new Error("COLA_GET_TOKEN_URL must be defined");
+  if (!process.env.COLA_USERNAME) {
+    throw new Error("COLA_USERNAME must be defined");
   }
 
-  if (!process.env.COLA_PRODUCTS_URL) {
-    throw new Error("COLA_PRODUCTS_URL must be defined");
+  if (!process.env.COLA_PASSWORD) {
+    throw new Error("COLA_PASSWORD must be defined");
   }
 
-  if (!process.env.COLA_MERCHANT_PRODUCTS_URL) {
-    throw new Error("COLA_MERCHANT_PRODUCTS_URL must be defined");
+  if (!process.env.COLA_GET_TOKEN_URI) {
+    throw new Error("COLA_GET_TOKEN_URI must be defined");
   }
 
-  if (!process.env.COLA_PROMOS_URL) {
-    throw new Error("COLA_PROMOS_URL must be defined");
+  if (!process.env.COLA_PRODUCTS_URI) {
+    throw new Error("COLA_PRODUCTS_URI must be defined");
   }
 
-  if (!process.env.TOTAL_GET_TOKEN_URL) {
-    throw new Error("COLA_CREATE_PRODUCT_URL must be defined");
+  if (!process.env.COLA_MERCHANT_PRODUCTS_URI) {
+    throw new Error("COLA_MERCHANT_PRODUCTS_URI must be defined");
   }
 
-  if (!process.env.TOTAL_PRODUCTS_URL) {
-    throw new Error("COLA_CREATE_PRODUCT_URL must be defined");
+  if (!process.env.COLA_PROMOS_URI) {
+    throw new Error("COLA_PROMOS_URI must be defined");
   }
 
-  if (!process.env.TOTAL_PROMOS_URL) {
-    throw new Error("COLA_CREATE_PRODUCT_URL must be defined");
+  if (!process.env.TOTAL_USERNAME) {
+    throw new Error("TOTAL_USERNAME must be defined");
+  }
+
+  if (!process.env.TOTAL_PASSWORD) {
+    throw new Error("TOTAL_PASSWORD must be defined");
+  }
+
+  if (!process.env.TOTAL_GET_TOKEN_URI) {
+    throw new Error("TOTAL_GET_TOKEN_URI must be defined");
+  }
+
+  if (!process.env.TOTAL_PRODUCTS_URI) {
+    throw new Error("TOTAL_PRODUCTS_URI must be defined");
+  }
+
+  if (!process.env.TOTAL_PROMOS_URI) {
+    throw new Error("TOTAL_PROMOS_URI must be defined");
   }
 
   try {

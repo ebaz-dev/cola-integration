@@ -4,6 +4,7 @@ import { json } from "body-parser";
 import { errorHandler, NotFoundError } from "@ebazdev/core";
 import { colaProductsRouter } from "./routes/cola-product-list";
 import { colaPromosRouter } from "./routes/cola-promo-list";
+import { orderStatusUpdateRouter } from "./routes/order-status";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 
@@ -23,6 +24,7 @@ app.use(
 
 app.use(apiPrefix, colaProductsRouter);
 app.use(apiPrefix, colaPromosRouter);
+app.use(apiPrefix, orderStatusUpdateRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();

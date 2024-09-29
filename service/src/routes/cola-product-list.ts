@@ -19,9 +19,7 @@ router.get("/product-list", async (req: Request, res: Response) => {
 
     if (
       !COLA_GET_TOKEN_URL ||
-      !COLA_PRODUCTS_URL ||
-      !COLA_USERNAME ||
-      !COLA_PASSWORD
+      !COLA_PRODUCTS_URL
     ) {
       throw new BadRequestError("Cola credentials are missing.");
     }
