@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
 import { Product, ProductDoc } from "@ebazdev/product";
-import { IntegrationCustomerNames } from "../shared/models/cola-customer-names";
+import { IntegrationCustomerIds } from "../shared/models/cola-customer-names";
 import { ColaPromoPublisher } from "../events/publisher/promo-created-publisher";
 import { StatusCodes } from "http-status-codes";
 import { natsWrapper } from "../nats-wrapper";
@@ -88,7 +88,7 @@ router.get("/promo-list", async (req: Request, res: Response) => {
 
       await new ColaPromoPublisher(natsWrapper.client).publish({
         name: promo.promoname,
-        customerId: IntegrationCustomerNames.cocaCola,
+        customerId: IntegrationCustomerIds.cocaCola,
         startDate: promo.startdate,
         endDate: promo.enddate,
         thresholdQuantity: promo.tresholdquantity,
