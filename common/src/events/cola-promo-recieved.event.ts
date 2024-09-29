@@ -1,13 +1,13 @@
 import { ObjectId } from "mongoose";
 import { ColaPromoSubjects } from "./cola-promo-event-subjects";
-import { IntegrationCustomerNames } from "../models/cola-customer-names";
+import { IntegrationCustomerIds } from "../models/cola-customer-names";
 
 export interface ColaPromoRecievedEvent {
   subject: ColaPromoSubjects.ColaPromoRecieved;
 
   data: {
     name: string;
-    customerId: IntegrationCustomerNames;
+    customerId: IntegrationCustomerIds;
     startDate: string;
     endDate: string;
     thresholdQuantity: number;
