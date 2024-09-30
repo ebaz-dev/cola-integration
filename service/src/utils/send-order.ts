@@ -3,7 +3,6 @@ import { Order, PaymentMethods } from "@ebazdev/order";
 import axios from "axios";
 import { getColaToken } from "./get-token";
 import moment from "moment";
-import { CustomError, NotFoundError } from "@ebazdev/core";
 import { Types } from "mongoose";
 
 
@@ -22,7 +21,6 @@ const sendOrder = async (orderId: string) => {
 
 
         const order = await Order.findById(new Types.ObjectId(orderId));
-        console.log("order", order);
 
         if (!order) {
             console.log("Order not found");
@@ -47,8 +45,6 @@ const sendOrder = async (orderId: string) => {
 
         const token = await getColaToken();
 
-
-        console.log("token", token);
         const getOrderNoData = {
             tradeshopid: Number(tradeshop.tsId),
             deliverydate: moment(order.deliveryDate).format("YYYY-MM-DD"),
@@ -57,38 +53,34 @@ const sendOrder = async (orderId: string) => {
             description: order.orderNo?.toString(),
             yourorderno: `ebazaaror${order.orderNo}`
         };
-        console.log("getOrderNoData", getOrderNoData);
-        const getOrderNoResponse = await axios.post(
-            `${COLA_API_URL}/api/ebazaar/getorderno`,
-            getOrderNoData,
-            {
-                headers: { Authorization: `Bearer ${token}` },
-                maxBodyLength: Infinity,
+        if (!order.thirdPartyId) {
+
+            const getOrderNoResponse = await axios.post(
+                `${COLA_API_URL}/api/ebazaar/getorderno`,
+                getOrderNoData,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    maxBodyLength: Infinity,
+                }
+            );
+            if (!getOrderNoResponse.data || !getOrderNoResponse.data.data[0].orderno) {
+                throw new Error("Get order no: error");
             }
-        );
 
-
-        console.log("data", getOrderNoResponse.data)
-
-        if (!getOrderNoResponse.data || !getOrderNoResponse.data.data[0].orderno) {
-            throw new Error("Get order no: error");
+            order.thirdPartyId = getOrderNoResponse.data.data[0].orderno;
+            await order.save();
         }
-
-        const orderno = getOrderNoResponse.data.data[0].orderno;
-
-        order.thirdPartyId = orderno;
 
         const orderDetails = order.products.concat(order.giftProducts).map(product => {
             return {
-                orderno: orderno,
-                productid: product.thirdPartyData[0].productId,
-                quantity: product.quantity,
-                price: product.price,
-                baseprice: product.basePrice
+                orderno: order.thirdPartyId,
+                productid: Number(product.thirdPartyData[0].productId),
+                quantity: Number(product.quantity) + Number(product.giftQuantity),
+                price: Number(product.price),
+                baseprice: Number(product.basePrice),
+                promoid: product.promoId || 0
             }
         });
-
-        console.log("orderdetails", orderDetails);
 
         const res = await axios.post(
             `${COLA_API_URL}/api/ebazaar/orderdetailcreate`,
@@ -98,9 +90,7 @@ const sendOrder = async (orderId: string) => {
                 maxBodyLength: Infinity,
             }
         );
-
-        console.log("res", res);
-        return { colaOrderNo: orderno, orderDetails }
+        return { colaOrderNo: order.thirdPartyId, orderDetails }
     } catch (error) {
         console.log("err", error)
         throw new Error("Send order: error")
