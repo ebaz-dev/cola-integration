@@ -9,6 +9,7 @@ import { colaLoginRouter } from "./routes/cola-get-token";
 import { colaMerchantProductsRouter } from "./routes/cola-merchant-products";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
+import { healthRouter } from "./routes/health";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(
   })
 );
 
+app.use(apiPrefix, healthRouter);
 app.use(apiPrefix, colaProductsRouter);
 app.use(apiPrefix, colaPromosRouter);
 app.use(apiPrefix, orderStatusUpdateRouter);
