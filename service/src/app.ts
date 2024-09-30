@@ -5,6 +5,8 @@ import { errorHandler, NotFoundError } from "@ebazdev/core";
 import { colaProductsRouter } from "./routes/cola-product-list";
 import { colaPromosRouter } from "./routes/cola-promo-list";
 import { orderStatusUpdateRouter } from "./routes/order-status";
+import { colaLoginRouter } from "./routes/cola-get-token";
+import { colaMerchantProductsRouter } from "./routes/cola-merchant-products";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 
@@ -25,6 +27,8 @@ app.use(
 app.use(apiPrefix, colaProductsRouter);
 app.use(apiPrefix, colaPromosRouter);
 app.use(apiPrefix, orderStatusUpdateRouter);
+app.use(apiPrefix, colaLoginRouter);
+app.use(apiPrefix, colaMerchantProductsRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();

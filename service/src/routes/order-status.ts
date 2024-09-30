@@ -6,11 +6,13 @@ import { Order } from "@ebazdev/order";
 import { colaOrderStatuses } from "../shared/models/cola-order-statuses";
 import { ColaOrderStatusPublisher } from "../events/publisher/cola-order-status-recieved-publisher";
 import { natsWrapper } from "../nats-wrapper";
+import { thirdPartyAuthenticate } from "../utils/middlewares/thirdPartyAuthenticate";
 
 const router = express.Router();
 
 router.post(
   "/order-status",
+  thirdPartyAuthenticate,
   [
     body("orderId").not().isEmpty().withMessage("Order ID is required."),
     body("status").not().isEmpty().withMessage("Status is required."),
@@ -31,6 +33,10 @@ router.post(
       const isColaOrderStatus = (status: any): status is colaOrderStatuses => {
         return Object.values(colaOrderStatuses).includes(status);
       };
+
+      if (!isColaOrderStatus(status)) {
+        throw new BadRequestError("Invalid status.");
+      }
 
       const order = Order.findOne({ _id: orderId });
 

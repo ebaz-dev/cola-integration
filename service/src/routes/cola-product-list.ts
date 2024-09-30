@@ -12,12 +12,12 @@ router.get("/product-list", async (req: Request, res: Response) => {
   try {
     const {
       COLA_GET_TOKEN_URI,
-      COLA_PRODUCTS_URI,
+      COLA_MERCHANT_PRODUCTS_URI,
       COLA_USERNAME,
       COLA_PASSWORD,
     } = process.env.NODE_ENV === "development" ? process.env : process.env;
 
-    if (!COLA_GET_TOKEN_URI || !COLA_PRODUCTS_URI) {
+    if (!COLA_GET_TOKEN_URI || !COLA_MERCHANT_PRODUCTS_URI) {
       throw new BadRequestError("Cola credentials are missing.");
     }
 
@@ -28,7 +28,7 @@ router.get("/product-list", async (req: Request, res: Response) => {
     const token = tokenResponse.data.token;
 
     const productsResponse = await axios.post(
-      COLA_PRODUCTS_URI,
+      COLA_MERCHANT_PRODUCTS_URI,
       {},
       {
         headers: { Authorization: `Bearer ${token}` },

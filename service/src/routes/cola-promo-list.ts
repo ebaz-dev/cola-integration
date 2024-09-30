@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
-import { Product, ProductDoc, Promo, PromoDoc } from "@ebazdev/product";
-import { IntegrationCustomerIds } from "../shared/models/cola-customer-names";
+import { Product, ProductDoc, Promo } from "@ebazdev/product";
+import { IntegrationCustomerIds } from "../shared/models/integration-customer-ids";
 import { ColaPromoPublisher } from "../events/publisher/cola-promo-created-publisher";
 import { ColaPromoUpdatedPublisher } from "../events/publisher/cola-promo-updated-publisher";
 import { StatusCodes } from "http-status-codes";
@@ -86,9 +86,9 @@ router.get("/promo-list", async (req: Request, res: Response) => {
       promo.products = await fetchEbazaarProductIds(promo.colaProducts);
       promo.giftProducts = await fetchEbazaarProductIds(promo.colaGiftProducts);
 
-      const existingPromo = (await Promo.findOne({
+      const existingPromo = await Promo.findOne({
         thirdPartyPromoId: promo.promoid,
-      })) as PromoDoc;
+      });
 
       if (existingPromo) {
         const hasChanges =
@@ -101,9 +101,6 @@ router.get("/promo-list", async (req: Request, res: Response) => {
           existingPromo.promoPercent !== promo.promopercent ||
           existingPromo.giftQuantity !== promo.giftquantity ||
           existingPromo.isActive !== promo.isactive ||
-          existingPromo.thirdPartyPromoTypeId !== promo.promotypeid ||
-          existingPromo.thirdPartyPromoType !== promo.promotype ||
-          existingPromo.thirdPartyPromoTypeByCode !== promo.promotypebycode ||
           !arraysEqual(existingPromo.products, promo.products) ||
           !arraysEqual(existingPromo.giftProducts, promo.giftProducts) ||
           !arraysEqual(existingPromo.tradeshops, promo.colaTradeshops);

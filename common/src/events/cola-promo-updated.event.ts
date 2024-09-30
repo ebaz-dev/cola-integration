@@ -1,6 +1,6 @@
 import { Types, ObjectId } from "mongoose";
 import { ColaPromoSubjects } from "./cola-promo-event-subjects";
-import { IntegrationCustomerIds } from "../models/cola-customer-names";
+import { IntegrationCustomerIds } from "../models/integration-customer-ids";
 
 export interface ColaPromoUpdatedEvent {
   subject: ColaPromoSubjects.ColaPromoUpdated;
