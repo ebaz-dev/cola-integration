@@ -10,6 +10,7 @@ import { colaMerchantProductsRouter } from "./routes/cola-merchant-products";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
+import { orderSendRouter } from "./routes/order-confirm";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use(apiPrefix, colaPromosRouter);
 app.use(apiPrefix, orderStatusUpdateRouter);
 app.use(apiPrefix, colaLoginRouter);
 app.use(apiPrefix, colaMerchantProductsRouter);
+app.use(apiPrefix, orderSendRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();
