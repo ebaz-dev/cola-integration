@@ -59,6 +59,8 @@ spec:
               value: 'http://103.229.178.41:8083/api/ebazaar/getdatapromo'
             - name: TOTAL_PRODUCTS_URI
               value: 'http://103.229.178.41:8083/api/ebazaar/getdataproductinfo'
+            - name: COLA_API_URL
+              value: 'http://122.201.28.22:8083'
           readinessProbe:
             httpGet:
               path: /api/v1/integration/cola/health
