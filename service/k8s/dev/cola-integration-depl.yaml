@@ -11,62 +11,64 @@ spec:
     metadata:
       labels:
         app: cola-integration
-    spec: 
+    spec:
       containers:
         - name: cola-integration
           image: ebazdev/cola-integration:latest
           imagePullPolicy: Always
           env:
             - name: MONGO_URI
-              value: 'mongodb://ebaz-dev:774CPXo65J8i@103.229.178.57:27017/ebaz-dev?directConnection=true'
+              value: "mongodb://ebaz-dev:774CPXo65J8i@103.229.178.57:27017/ebaz-dev?directConnection=true"
             - name: JWT_KEY
-              value: '279112db517a6fadbfbb53500ee5e142a9036f1c972739e895c0d3ff7aa84af3'
+              value: "279112db517a6fadbfbb53500ee5e142a9036f1c972739e895c0d3ff7aa84af3"
             - name: NATS_URL
-              value: 'http://nats-srv:4222'
+              value: "http://nats-srv:4222"
             - name: NATS_CLUSTER_ID
-              value: 'ebazaar_dev'
+              value: "ebazaar_dev"
             - name: NATS_USER
-              value: 'nats_dev'
+              value: "nats_dev"
             - name: NATS_PASS
-              value: 'NaTs@Dev$EBaz'
+              value: "NaTs@Dev$EBaz"
             - name: NATS_CLIENT_ID
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.name 
+                  fieldPath: metadata.name
             - name: PORT
-              value: '3000'
+              value: "3000"
             - name: NODE_ENV
-              value: 'development'
+              value: "development"
             - name: COLA_USERNAME
-              value: 'bazaar'
+              value: "bazaar"
             - name: COLA_PASSWORD
-              value: 'M8@46jkljkjkljlk#$2024'
+              value: "M8@46jkljkjkljlk#$2024"
             - name: COLA_GET_TOKEN_URI
-              value: 'http://122.201.28.22:8083/api/tokenbazaar'
+              value: "http://122.201.28.22:8083/api/tokenbazaar"
             - name: COLA_PRODUCTS_URI
-              value: 'http://122.201.28.22:8083/api/ebazaar/getdataproductinfo'
+              value: "http://122.201.28.22:8083/api/ebazaar/getdataproductinfo"
             - name: COLA_MERCHANT_PRODUCTS_URI
-              value: 'http://122.201.28.22:8083/api/ebazaar/productremains'
+              value: "http://122.201.28.22:8083/api/ebazaar/productremains"
             - name: COLA_PROMOS_URI
-              value: 'http://122.201.28.22:8083/api/ebazaar/getdatapromo'
+              value: "http://122.201.28.22:8083/api/ebazaar/getdatapromo"
             - name: TOTAL_USERNAME
-              value: 'bazaar'
+              value: "bazaar"
             - name: TOTAL_PASSWORD
-              value: 'M8@46jkljkjkljlk#$2024TD'
+              value: "M8@46jkljkjkljlk#$2024TD"
             - name: TOTAL_GET_TOKEN_URI
-              value: 'http://103.229.178.41:8083/api/tokenbazaar'
+              value: "http://103.229.178.41:8083/api/tokenbazaar"
             - name: TOTAL_PROMOS_URI
-              value: 'http://103.229.178.41:8083/api/ebazaar/getdatapromo'
+              value: "http://103.229.178.41:8083/api/ebazaar/getdatapromo"
             - name: TOTAL_PRODUCTS_URI
-              value: 'http://103.229.178.41:8083/api/ebazaar/getdataproductinfo'
+              value: "http://103.229.178.41:8083/api/ebazaar/getdataproductinfo"
             - name: COLA_API_URL
-              value: 'http://122.201.28.22:8083'
+              value: "http://122.201.28.22:8083"
             - name: COLA_OUT_USERNAME
-              value: 'coca-cola'
+              value: "coca-cola"
             - name: COLA_OUT_PASSWORD
-              value: 'wr!cuwr5WUjik*X$-ru#'
+              value: "wr!cuwr5WUjik*X$-ru#"
             - name: COLA_ACCESS_TOKEN_SECRET
-              value: 'S3bri?h@Ph?hesTL@iST'
+              value: "S3bri?h@Ph?hesTL@iST"
+            - name: COLA_API
+              value: "http://122.201.28.22:8083"
           readinessProbe:
             httpGet:
               path: /api/v1/integration/cola/health

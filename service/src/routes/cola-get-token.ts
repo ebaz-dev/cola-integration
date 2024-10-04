@@ -7,7 +7,8 @@ dotenv.config();
 
 const router = express.Router();
 
-const { COLA_OUT_USERNAME, COLA_OUT_PASSWORD, COLA_ACCESS_TOKEN_SECRET } = process.env;
+const { COLA_OUT_USERNAME, COLA_OUT_PASSWORD, COLA_ACCESS_TOKEN_SECRET } =
+  process.env;
 
 router.post("/login", (req: Request, res: Response) => {
   const { username, password } = req.body;
