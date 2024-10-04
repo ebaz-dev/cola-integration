@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
 import { orderSendRouter } from "./routes/order-confirm";
 import { colaDashboardRouter } from "./routes/cola-dashboard-data";
+import { colaProfileRouter } from "./routes/cola-get-profile-";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use(apiPrefix, colaLoginRouter);
 app.use(apiPrefix, colaMerchantProductsRouter);
 app.use(apiPrefix, orderSendRouter);
 app.use(apiPrefix, colaDashboardRouter);
+app.use(apiPrefix, colaProfileRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();
