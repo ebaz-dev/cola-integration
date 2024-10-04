@@ -7,13 +7,12 @@ dotenv.config();
 
 const router = express.Router();
 
-const { USERNAME, PASSWORD, ACCESS_TOKEN_SECRET } =
-  process.env.NODE_ENV === "development" ? process.env : process.env;
+const { COLA_OUT_USERNAME, COLA_OUT_PASSWORD, COLA_ACCESS_TOKEN_SECRET } = process.env;
 
 router.post("/login", (req: Request, res: Response) => {
   const { username, password } = req.body;
 
-  if (username !== USERNAME || password !== PASSWORD) {
+  if (username !== COLA_OUT_USERNAME || password !== COLA_OUT_PASSWORD) {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .send({ status: "failed", message: "Invalid credentials" });
@@ -23,7 +22,7 @@ router.post("/login", (req: Request, res: Response) => {
     username: "cola-integrated-user",
   };
 
-  const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET!, {
+  const accessToken = jwt.sign(payload, COLA_ACCESS_TOKEN_SECRET!, {
     expiresIn: "15m",
   });
 

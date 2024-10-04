@@ -61,6 +61,12 @@ spec:
               value: 'http://103.229.178.41:8083/api/ebazaar/getdataproductinfo'
             - name: COLA_API_URL
               value: 'http://122.201.28.22:8083'
+            - name: COLA_OUT_USERNAME
+              value: 'coca-cola'
+            - name: COLA_OUT_PASSWORD
+              value: 'wr!cuwr5WUjik*X$-ru#'
+            - name: COLA_ACCESS_TOKEN_SECRET
+              value: 'S3bri?h@Ph?hesTL@iST'
           readinessProbe:
             httpGet:
               path: /api/v1/integration/cola/health
