@@ -1,48 +1,44 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
 import { StatusCodes } from "http-status-codes";
+import { BaseAPIClient } from "../shared/utils/cola-api-client";
+import { BadRequestError, NotFoundError } from "@ebazdev/core";
 
 const router = express.Router();
-
-const { COLA_API, COLA_USERNAME, COLA_PASSWORD } = process.env;
+const colaClient = new BaseAPIClient();
 
 router.get("/profile-data", async (req: Request, res: Response) => {
   try {
-    const { tradeshopid } = req.query;
+    const { tradeshopId } = req.query;
 
-    if (!tradeshopid) {
-      return res.status(StatusCodes.BAD_REQUEST).send({ status: "failure", message: "tradeshopid is required" });
+    if (!tradeshopId) {
+      throw new BadRequestError("tradeshopId required");
     }
 
-    const tokenResponse = await axios.post(COLA_API! + "/api/tokenbazaar", {
-      username: COLA_USERNAME!,
-      pass: COLA_PASSWORD!,
-    });
-
-    if (!tokenResponse?.data?.token) {
-      throw new Error("Failed to retrieve token from Cola API.");
-    }
-
-    const token = tokenResponse.data.token;
-
-    const profileResponse = await axios.post(
-      COLA_API! + "/api/ebazaar/getdataprofile",
-      { tradeshopid },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        maxBodyLength: Infinity,
-      }
+    const profileResponse = await colaClient.post(
+      "/api/ebazaar/getdataprofile",
+      { tradeshopid: tradeshopId }
     );
 
     const profileData = profileResponse?.data?.data ?? [];
 
+    if (profileData.length === 0) {
+      throw new NotFoundError();
+    }
+
     return res.status(StatusCodes.OK).send({ data: profileData });
   } catch (error: any) {
     if (error.response?.data?.err_msg === "no data") {
-      return res.status(StatusCodes.NOT_FOUND).send({ data: [] });
+      throw new NotFoundError();
+    } else if (
+      error instanceof BadRequestError ||
+      error instanceof NotFoundError
+    ) {
+      throw error;
+    } else {
+      console.error("Cola integration product list get error:", error);
+      new BadRequestError("Something went wrong");
     }
-    console.error("Cola integration product list get error:", error);
-    return res.status(StatusCodes.BAD_REQUEST).send({ status: "failure", message: error.message });
   }
 });
 

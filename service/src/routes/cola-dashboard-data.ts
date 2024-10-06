@@ -1,21 +1,15 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
 import { StatusCodes } from "http-status-codes";
+import { BaseAPIClient } from "../shared/utils/cola-api-client";
+import { BadRequestError } from "@ebazdev/core";
 
 const router = express.Router();
+const colaClient = new BaseAPIClient();
 
-const { COLA_API, COLA_USERNAME, COLA_PASSWORD } = process.env;
-
-const fetchDataFromColaAPI = async (
-  endpoint: string,
-  body: object,
-  token: string
-) => {
+const fetchDataFromColaAPI = async (endpoint: string, body: object) => {
   try {
-    const response = await axios.post(COLA_API! + endpoint, body, {
-      headers: { Authorization: `Bearer ${token}` },
-      maxBodyLength: Infinity,
-    });
+    const response = await colaClient.post(endpoint, body);
     return response?.data?.data ?? [];
   } catch (error: any) {
     if (error.response?.data?.err_msg === "no data") {
@@ -27,18 +21,10 @@ const fetchDataFromColaAPI = async (
 
 router.get("/dashboard-data", async (req: Request, res: Response) => {
   try {
-    const { tradeshopid, customerType } = req.query;
-
-    const tokenResponse = await axios.post(COLA_API! + "/api/tokenbazaar", {
-      username: COLA_USERNAME!,
-      pass: COLA_PASSWORD!,
-    });
-
-    if (!tokenResponse?.data?.token) {
-      throw new Error("Failed to retrieve token from Cola API.");
+    const { tradeshopId, customerType } = req.query;
+    if (!tradeshopId || !customerType) {
+      throw new BadRequestError("Required inputs are missing");
     }
-
-    const token = tokenResponse.data.token;
 
     const [
       orderList,
@@ -48,24 +34,25 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
       rackList,
       printingsList,
     ] = await Promise.all([
-      fetchDataFromColaAPI("/api/ebazaar/getdatasales", { tradeshopid }, token),
-      fetchDataFromColaAPI(
-        "/api/ebazaar/getdatadiscount",
-        { tradeshopid },
-        token
-      ),
-      fetchDataFromColaAPI("/api/ebazaar/getdatared", { tradeshopid }, token),
-      fetchDataFromColaAPI(
-        "/api/ebazaar/getdatacooler",
-        { tradeshopid, customerType },
-        token
-      ),
-      fetchDataFromColaAPI("/api/ebazaar/getdatampoe", { tradeshopid }, token),
-      fetchDataFromColaAPI(
-        "/api/ebazaar/getdataprinting",
-        { tradeshopid },
-        token
-      ),
+      fetchDataFromColaAPI("/api/ebazaar/getdatasales", {
+        tradeshopid: tradeshopId,
+      }),
+      fetchDataFromColaAPI("/api/ebazaar/getdatadiscount", {
+        tradeshopid: tradeshopId,
+      }),
+      fetchDataFromColaAPI("/api/ebazaar/getdatared", {
+        tradeshopid: tradeshopId,
+      }),
+      fetchDataFromColaAPI("/api/ebazaar/getdatacooler", {
+        tradeshopid: tradeshopId,
+        customerType,
+      }),
+      fetchDataFromColaAPI("/api/ebazaar/getdatampoe", {
+        tradeshopid: tradeshopId,
+      }),
+      fetchDataFromColaAPI("/api/ebazaar/getdataprinting", {
+        tradeshopid: tradeshopId,
+      }),
     ]);
 
     const data = {
@@ -79,6 +66,9 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).send(data);
   } catch (error: any) {
+    if (error.message === "Required inputs are missing") {
+      throw error;
+    }
     console.error("Cola integration product list get error:", error);
     return res.status(StatusCodes.BAD_REQUEST).send({ status: "failure" });
   }

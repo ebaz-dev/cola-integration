@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 import { OrderConfirmedListener } from "./events/listener/order-confirmed-listener";
+import { BaseAPIClient } from "./shared/utils/cola-api-client";
 
 const start = async () => {
   if (!process.env.PORT) {
@@ -36,48 +37,28 @@ const start = async () => {
     throw new Error("NATS_PASS must be defined");
   }
 
-  if (!process.env.COLA_USERNAME) {
-    throw new Error("COLA_USERNAME must be defined");
+  if (!process.env.COLA_OUTBOUND_USERNAME) {
+    throw new Error("COLA_OUTBOUND_USERNAME must be defined");
   }
 
-  if (!process.env.COLA_PASSWORD) {
-    throw new Error("COLA_PASSWORD must be defined");
+  if (!process.env.COLA_OUTBOUND_PASSWORD) {
+    throw new Error("COLA_OUTBOUND_PASSWORD must be defined");
   }
 
-  if (!process.env.COLA_GET_TOKEN_URI) {
-    throw new Error("COLA_GET_TOKEN_URI must be defined");
+  if (!process.env.COLA_BASE_URI) {
+    throw new Error("COLA_BASE_API must be defined");
   }
 
-  if (!process.env.COLA_PRODUCTS_URI) {
-    throw new Error("COLA_PRODUCTS_URI must be defined");
+  if (!process.env.COLA_INBOUND_USERNAME) {
+    throw new Error("COLA_INBOUND_USERNAME must be defined");
   }
 
-  if (!process.env.COLA_MERCHANT_PRODUCTS_URI) {
-    throw new Error("COLA_MERCHANT_PRODUCTS_URI must be defined");
+  if (!process.env.COLA_INBOUND_PASSWORD) {
+    throw new Error("COLA_INBOUND_PASSWORD must be defined");
   }
 
-  if (!process.env.COLA_PROMOS_URI) {
-    throw new Error("COLA_PROMOS_URI must be defined");
-  }
-
-  if (!process.env.TOTAL_USERNAME) {
-    throw new Error("TOTAL_USERNAME must be defined");
-  }
-
-  if (!process.env.TOTAL_PASSWORD) {
-    throw new Error("TOTAL_PASSWORD must be defined");
-  }
-
-  if (!process.env.TOTAL_GET_TOKEN_URI) {
-    throw new Error("TOTAL_GET_TOKEN_URI must be defined");
-  }
-
-  if (!process.env.TOTAL_PRODUCTS_URI) {
-    throw new Error("TOTAL_PRODUCTS_URI must be defined");
-  }
-
-  if (!process.env.TOTAL_PROMOS_URI) {
-    throw new Error("TOTAL_PROMOS_URI must be defined");
+  if (!process.env.COLA_INBOUND_ACCESS_TOKEN_SECRET) {
+    throw new Error("COLA_INBOUND_ACCESS_TOKEN_SECRET must be defined");
   }
 
   try {
@@ -101,6 +82,17 @@ const start = async () => {
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");
+
+    const colaClient = new BaseAPIClient();
+
+    (async () => {
+      try {
+        await colaClient.getToken();
+        console.log("Token initialized at server startup.");
+      } catch (error) {
+        console.error("Error initializing token at startup:", error);
+      }
+    })();
   } catch (err) {
     console.error(err);
   }

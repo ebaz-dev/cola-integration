@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 
 dotenv.config();
 
-const { COLA_ACCESS_TOKEN_SECRET } = process.env;
+const { COLA_INBOUND_ACCESS_TOKEN_SECRET } = process.env;
 
 const thirdPartyAuthenticate = (
   req: Request,
@@ -22,7 +22,7 @@ const thirdPartyAuthenticate = (
 
   const token = authHeader.split(" ")[1];
 
-  jwt.verify(token, COLA_ACCESS_TOKEN_SECRET!, (err, decoded) => {
+  jwt.verify(token, COLA_INBOUND_ACCESS_TOKEN_SECRET!, (err, decoded) => {
     if (err) {
       return res
         .status(StatusCodes.FORBIDDEN)

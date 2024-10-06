@@ -12,45 +12,16 @@ import {
   giftProducts,
   promoTradeshops,
 } from "../shared/models/cola-promo";
+import { BaseAPIClient } from "../shared/utils/cola-api-client";
 
 const router = express.Router();
+const colaClient = new BaseAPIClient();
 
 router.get("/promo-list", async (req: Request, res: Response) => {
   try {
-    const {
-      COLA_GET_TOKEN_URI,
-      COLA_PROMOS_URI,
-      COLA_USERNAME,
-      COLA_PASSWORD,
-    } = process.env;
-
-    if (
-      !COLA_GET_TOKEN_URI ||
-      !COLA_PROMOS_URI ||
-      !COLA_USERNAME ||
-      !COLA_PASSWORD
-    ) {
-      throw new Error("Cola credentials are missing.");
-    }
-
-    const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
-      username: COLA_USERNAME,
-      pass: COLA_PASSWORD,
-    });
-
-    if (!tokenResponse?.data?.token) {
-      throw new Error("Failed to retrieve token from Cola API.");
-    }
-
-    const token = tokenResponse.data.token;
-
-    const promosResponse = await axios.post(
-      COLA_PROMOS_URI,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        maxBodyLength: Infinity,
-      }
+    const promosResponse = await colaClient.post(
+      "/api/ebazaar/getdatapromo",
+      {}
     );
 
     const promoData = promosResponse?.data || {};

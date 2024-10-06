@@ -2,61 +2,59 @@ import express, { Request, Response } from "express";
 import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { Product } from "@ebazdev/product";
 import { StatusCodes } from "http-status-codes";
-import axios from "axios";
 import { ColaNewProductPublisher } from "../events/publisher/cola-product-created-publisher";
 import { natsWrapper } from "../nats-wrapper";
+import { BaseAPIClient } from "../shared/utils/cola-api-client";
 
 const router = express.Router();
+const colaClient = new BaseAPIClient();
 
 router.get("/product-list", async (req: Request, res: Response) => {
   try {
-    const {
-      COLA_GET_TOKEN_URI,
-      COLA_MERCHANT_PRODUCTS_URI,
-      COLA_USERNAME,
-      COLA_PASSWORD,
-    } = process.env.NODE_ENV === "development" ? process.env : process.env;
-
-    if (!COLA_GET_TOKEN_URI || !COLA_MERCHANT_PRODUCTS_URI) {
-      throw new BadRequestError("Cola credentials are missing.");
-    }
-
-    const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
-      username: COLA_USERNAME,
-      pass: COLA_PASSWORD,
-    });
-    const token = tokenResponse.data.token;
-
-    const productsResponse = await axios.post(
-      COLA_MERCHANT_PRODUCTS_URI,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        maxBodyLength: Infinity,
-      }
+    const productsResponse = await colaClient.post(
+      `/api/ebazaar/getdataproductinfo`,
+      {}
     );
 
     const products = productsResponse?.data?.data || [];
     const total = products.length;
 
-    for (const item of products) {
-      const product = await Product.findOne({
-        "thirdPartyData.productId": item.productid,
-      });
+    const productIds = products.map((item: any) => item.productid);
 
-      if (!product) {
-        await new ColaNewProductPublisher(natsWrapper.client).publish({
-          productId: item.productid,
-          productName: item.productname,
-          sectorName: item.sectorname,
-          brandName: item.brandname,
-          categoryName: item.categoryname,
-          packageName: item.packagename,
-          capacity: item.capacity,
-          incase: item.incase,
-          barcode: item.barcode,
-        });
-      }
+    const existingProducts = await Product.find({
+      "thirdPartyData.productId": { $in: productIds },
+    });
+
+    const existingProductIds = existingProducts
+      .map((item) => {
+        if (Array.isArray(item.thirdPartyData)) {
+          const colaIntegrationData = item.thirdPartyData.find((data: any) => {
+            return data?.customerId?.toString() === "66ebe3e3c0acbbab7824b195";
+          });
+          return colaIntegrationData?.productId;
+        }
+        return undefined;
+      })
+      .filter(
+        (productId: string | undefined): productId is string => !!productId
+      );
+
+    const newProducts = products.filter(
+      (item: any) => !existingProductIds.includes(item.productid)
+    );
+
+    for (const newProduct of newProducts) {
+      await new ColaNewProductPublisher(natsWrapper.client).publish({
+        productId: newProduct.productid,
+        productName: newProduct.productname,
+        sectorName: newProduct.sectorname,
+        brandName: newProduct.brandname,
+        categoryName: newProduct.categoryname,
+        packageName: newProduct.packagename,
+        capacity: newProduct.capacity,
+        incase: newProduct.incase,
+        barcode: newProduct.barcode,
+      });
     }
 
     res.status(StatusCodes.OK).send({
@@ -67,15 +65,10 @@ router.get("/product-list", async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Cola integration product list get error:", error);
-    if (error.message === "Cola credentials are missing.") {
-      res.status(StatusCodes.BAD_REQUEST).send({
-        message: error.message,
-      });
-    } else {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "Something went wrong.",
-      });
-    }
+
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+      message: "Something went wrong.",
+    });
   }
 });
 

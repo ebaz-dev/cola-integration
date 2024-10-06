@@ -1,14 +1,14 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import axios from "axios";
 import { Merchant } from "@ebazdev/customer";
 import { IntegrationCustomerIds } from "../shared/models/integration-customer-ids";
 import { Product } from "@ebazdev/product";
 import { ColaMrechantProductsPublisher } from "../events/publisher/cola-merchant-product-updated-publisher";
+import { BaseAPIClient } from "../shared/utils/cola-api-client";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
-
+const colaClient = new BaseAPIClient();
 interface RegisteredProduct {
   productId: string;
   thirdPartyId: string | null;
@@ -16,25 +16,6 @@ interface RegisteredProduct {
 
 router.get("/merchant/product-list", async (req: Request, res: Response) => {
   try {
-    const {
-      COLA_GET_TOKEN_URI,
-      COLA_MERCHANT_PRODUCTS_URI,
-      COLA_USERNAME,
-      COLA_PASSWORD,
-    } = process.env;
-
-    if (
-      !COLA_GET_TOKEN_URI ||
-      !COLA_USERNAME ||
-      !COLA_PASSWORD ||
-      !COLA_MERCHANT_PRODUCTS_URI
-    ) {
-      console.error("Merchant products fetch: Cola credentials are missing.");
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "Cola credentials are missing.",
-      });
-    }
-
     const holdingKey = "MCSCC";
     const tsId = { $exists: true };
 
@@ -50,12 +31,6 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
         .status(StatusCodes.NOT_FOUND)
         .send({ message: "No merchants found." });
     }
-
-    const token = await getColaToken(
-      COLA_GET_TOKEN_URI,
-      COLA_USERNAME,
-      COLA_PASSWORD
-    );
 
     const products = await Product.find({
       customerId: IntegrationCustomerIds.cocaCola,
@@ -85,11 +60,15 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
 
       if (!colaId) continue;
 
-      const activeProducts = await fetchMerchantProducts(
-        COLA_MERCHANT_PRODUCTS_URI,
-        token,
-        colaId
-      );
+      const productResponse = (
+        await colaClient.post("/api/ebazaar/productremains", {
+          tradeshopid: colaId,
+        })
+      ).data;
+
+      const activeProducts = productResponse.data;
+      const shatlal = productResponse.shatlal;
+
       const activeProductIds = activeProducts.map(
         (product: any) => product.productid
       );
@@ -107,12 +86,12 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
         activeList: activeProductList,
         inActiveList: inActiveProductList,
       });
+
+      activeProductList = [];
+      inActiveProductList = [];
     }
 
-    return res.send({
-      activeProductList: activeProductList,
-      inActiveProductList: inActiveProductList,
-    });
+    return res.status(StatusCodes.OK).json({ message: "successful" });
   } catch (error: any) {
     console.log(error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
@@ -120,30 +99,5 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
     });
   }
 });
-
-const getColaToken = async (
-  uri: string,
-  username: string,
-  password: string
-) => {
-  const { data } = await axios.post(uri, { username, pass: password });
-  return data.token;
-};
-
-const fetchMerchantProducts = async (
-  uri: string,
-  token: string,
-  colaId: string
-): Promise<any[]> => {
-  const { data } = await axios.post(
-    uri,
-    { tradeshopid: parseInt(colaId) },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      maxBodyLength: Infinity,
-    }
-  );
-  return data?.data || [];
-};
 
 export { router as colaMerchantProductsRouter };
