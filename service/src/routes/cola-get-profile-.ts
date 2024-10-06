@@ -3,6 +3,7 @@ import axios from "axios";
 import { StatusCodes } from "http-status-codes";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
 import { BadRequestError, NotFoundError } from "@ebazdev/core";
+import { Merchant } from "@ebazdev/customer"
 
 const router = express.Router();
 const colaClient = new BaseAPIClient();
@@ -15,9 +16,26 @@ router.get("/profile-data", async (req: Request, res: Response) => {
       throw new BadRequestError("tradeshopId required");
     }
 
+    const merchant = await Merchant.findById(tradeshopId)
+
+    if (!merchant) {
+      throw new BadRequestError("merchant not found")
+    }
+
+    if (!merchant.tradeShops){
+      throw new BadRequestError("cola merchant not registered")
+    }
+
+    const integrationData = merchant.tradeShops
+    const colaId = integrationData.find((item) => item.holdingKey === "MCSCC")?.tsId;
+    
+    if (!colaId) {
+      throw new BadRequestError("cola merchant not registered")
+    }
+
     const profileResponse = await colaClient.post(
       "/api/ebazaar/getdataprofile",
-      { tradeshopid: tradeshopId }
+      { tradeshopid: colaId }
     );
 
     const profileData = profileResponse?.data?.data ?? [];
