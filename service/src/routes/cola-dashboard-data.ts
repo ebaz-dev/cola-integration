@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
-import { BadRequestError } from "@ebazdev/core";
+import { BadRequestError, NotFoundError } from "@ebazdev/core";
 import { Merchant } from "@ebazdev/customer"
 
 const router = express.Router();
@@ -29,7 +29,7 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
     const merchant = await Merchant.findById(tradeshopId)
 
     if (!merchant) {
-      throw new BadRequestError("merchant not found")
+      throw new NotFoundError()
     }
 
     if (!merchant.tradeShops){
@@ -85,9 +85,15 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
   } catch (error: any) {
     if (error.message === "Required inputs are missing") {
       throw error;
+    } else if (
+      error instanceof BadRequestError ||
+      error instanceof NotFoundError
+    ) {
+      throw error;
+    } else { 
+      console.error("Cola integration product list get error:", error);
+      throw new BadRequestError("Something went wrong")
     }
-    console.error("Cola integration product list get error:", error);
-    return res.status(StatusCodes.BAD_REQUEST).send({ status: "failure" });
   }
 });
 

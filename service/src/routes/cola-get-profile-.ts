@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express";
-import axios from "axios";
 import { StatusCodes } from "http-status-codes";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
 import { BadRequestError, NotFoundError } from "@ebazdev/core";
@@ -55,7 +54,7 @@ router.get("/profile-data", async (req: Request, res: Response) => {
       throw error;
     } else {
       console.error("Cola integration product list get error:", error);
-      new BadRequestError("Something went wrong");
+      throw new BadRequestError("Something went wrong");
     }
   }
 });
