@@ -51,7 +51,7 @@ const sendOrder = async (orderId: string) => {
             paymenttype: order.paymentMethod === PaymentMethods.Cash ? "Бэлэн" : "QPAY",
             ordertype: "bazaar",
             description: order.orderNo?.toString(),
-            yourorderno: `ebazaaror${order.orderNo}`
+            yourorderno: `${order.orderNo}`
         };
         if (!order.thirdPartyId) {
 
