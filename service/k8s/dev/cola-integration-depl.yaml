@@ -49,6 +49,8 @@ spec:
               value: "wr!cuwr5WUjik*X$-ru#"
             - name: COLA_INBOUND_ACCESS_TOKEN_SECRET
               value: "S3bri?h@Ph?hesTL@iST"
+            - name: COLA_API_URL
+              value: "http://122.201.28.22:8083"
 
           readinessProbe:
             httpGet:

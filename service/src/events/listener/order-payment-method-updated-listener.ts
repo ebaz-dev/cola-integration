@@ -14,7 +14,7 @@ export class OrderPaymentMethodUpdatedListener extends Listener<OrderPaymentMeth
             await sendOrder(data.id);
             msg.ack();
         } catch (error) {
-            console.error("Error processing InvoicePaidEvent:", error);
+            console.error("Error processing OrderPaymentMethodUpdatedEvent:", error);
             msg.ack();
         }
     }

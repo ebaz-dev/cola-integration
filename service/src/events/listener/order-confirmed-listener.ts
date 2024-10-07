@@ -14,7 +14,7 @@ export class OrderConfirmedListener extends Listener<OrderConfirmedEvent> {
             await sendOrder(data.id);
             msg.ack();
         } catch (error) {
-            console.error("Error processing InvoicePaidEvent:", error);
+            console.error("Error processing OrderConfirmedEvent:", error);
             msg.ack();
         }
     }
