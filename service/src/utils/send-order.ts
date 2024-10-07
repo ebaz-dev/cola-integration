@@ -1,5 +1,5 @@
 import { HoldingSupplierCodes, Merchant } from "@ebazdev/customer";
-import { Order, PaymentMethods } from "@ebazdev/order";
+import { Order, OrderStatus, PaymentMethods } from "@ebazdev/order";
 import axios from "axios";
 import { getColaToken } from "./get-token";
 import moment from "moment";
@@ -25,6 +25,10 @@ const sendOrder = async (orderId: string) => {
         if (!order) {
             console.log("Order not found");
             throw new Error("Order not found");
+        }
+
+        if (order.status === OrderStatus.Created && order.paymentMethod != PaymentMethods.Cash) {
+            return { order }
         }
 
         const merchant = await Merchant.findById(order.merchantId);

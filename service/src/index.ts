@@ -3,6 +3,7 @@ import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 import { OrderConfirmedListener } from "./events/listener/order-confirmed-listener";
 import { BaseAPIClient } from "./shared/utils/cola-api-client";
+import { OrderCreatedListener } from "./events/listener/order-created-listener";
 
 const start = async () => {
   if (!process.env.PORT) {
@@ -79,6 +80,7 @@ const start = async () => {
     process.on("SIGTERM", () => natsWrapper.client.close());
 
     new OrderConfirmedListener(natsWrapper.client).listen();
+    new OrderCreatedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");
