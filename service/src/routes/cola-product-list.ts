@@ -3,6 +3,7 @@ import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { Product } from "@ebazdev/product";
 import { StatusCodes } from "http-status-codes";
 import { ColaNewProductPublisher } from "../events/publisher/cola-product-created-publisher";
+import { ColaProductsUpdatedPublisher } from "../events/publisher/cola-products-updated-publisher"
 import { natsWrapper } from "../nats-wrapper";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
 
@@ -43,6 +44,21 @@ router.get("/product-list", async (req: Request, res: Response) => {
       (item: any) => !existingProductIds.includes(item.productid)
     );
 
+    for (const product of products) {
+
+      await new ColaProductsUpdatedPublisher(natsWrapper.client).publish({
+        productId: product.productid,
+        productName: product.productname,
+        sectorName: product.sectorname,
+        brandName: product.brandname,
+        categoryName: product.categoryname,
+        packageName: product.packagename,
+        capacity: product.capacity,
+        incase: product.incase,
+        barcode: product.barcode,
+      });
+    }
+
     for (const newProduct of newProducts) {
       await new ColaNewProductPublisher(natsWrapper.client).publish({
         productId: newProduct.productid,
@@ -55,7 +71,7 @@ router.get("/product-list", async (req: Request, res: Response) => {
         incase: newProduct.incase,
         barcode: newProduct.barcode,
       });
-    }
+    } 
 
     res.status(StatusCodes.OK).send({
       data: products,
