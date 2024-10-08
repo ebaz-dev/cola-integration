@@ -1,5 +1,5 @@
 import { HoldingSupplierCodes, Merchant } from "@ebazdev/customer";
-import { Order, PaymentMethods } from "@ebazdev/order";
+import { Order, OrderStatus, PaymentMethods } from "@ebazdev/order";
 import axios from "axios";
 import { getColaToken } from "./get-token";
 import moment from "moment";
@@ -27,6 +27,10 @@ const sendOrder = async (orderId: string) => {
             throw new Error("Order not found");
         }
 
+        if (order.status === OrderStatus.Created && order.paymentMethod != PaymentMethods.Cash) {
+            return { order }
+        }
+
         const merchant = await Merchant.findById(order.merchantId);
 
         console.log("merchant", merchant);
@@ -51,7 +55,7 @@ const sendOrder = async (orderId: string) => {
             paymenttype: order.paymentMethod === PaymentMethods.Cash ? "Бэлэн" : "QPAY",
             ordertype: "bazaar",
             description: order.orderNo?.toString(),
-            yourorderno: `ebazaaror${order.orderNo}`
+            yourorderno: `${order.orderNo}`
         };
         if (!order.thirdPartyId) {
 

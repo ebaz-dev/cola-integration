@@ -6,3 +6,5 @@ export * from "./events/cola-promo-event-subjects";
 export * from "./events/cola-promo-recieved.event";
 export * from "./events/cola-promo-updated.event";
 export * from "./models/cola-promo";
+export * from "./events/cola-order-status-subjects";
+export * from "./events/cola-order-status-recieved.event";

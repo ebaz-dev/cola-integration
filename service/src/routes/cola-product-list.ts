@@ -22,27 +22,27 @@ router.get("/product-list", async (req: Request, res: Response) => {
 
     const productIds = products.map((item: any) => item.productid);
 
-    const existingProducts = await Product.find({
-      "thirdPartyData.productId": { $in: productIds },
-    });
+    // const existingProducts = await Product.find({
+    //   "thirdPartyData.productId": { $in: productIds },
+    // });
 
-    const existingProductIds = existingProducts
-      .map((item) => {
-        if (Array.isArray(item.thirdPartyData)) {
-          const colaIntegrationData = item.thirdPartyData.find((data: any) => {
-            return data?.customerId?.toString() === "66ebe3e3c0acbbab7824b195";
-          });
-          return colaIntegrationData?.productId;
-        }
-        return undefined;
-      })
-      .filter(
-        (productId: string | undefined): productId is string => !!productId
-      );
+    // const existingProductIds = existingProducts
+    //   .map((item) => {
+    //     if (Array.isArray(item.thirdPartyData)) {
+    //       const colaIntegrationData = item.thirdPartyData.find((data: any) => {
+    //         return data?.customerId?.toString() === "66ebe3e3c0acbbab7824b195";
+    //       });
+    //       return colaIntegrationData?.productId;
+    //     }
+    //     return undefined;
+    //   })
+    //   .filter(
+    //     (productId: string | undefined): productId is string => !!productId
+    //   );
 
-    const newProducts = products.filter(
-      (item: any) => !existingProductIds.includes(item.productid)
-    );
+    // const newProducts = products.filter(
+    //   (item: any) => !existingProductIds.includes(item.productid)
+    // );
 
     for (const product of products) {
 
@@ -59,19 +59,19 @@ router.get("/product-list", async (req: Request, res: Response) => {
       });
     }
 
-    for (const newProduct of newProducts) {
-      await new ColaNewProductPublisher(natsWrapper.client).publish({
-        productId: newProduct.productid,
-        productName: newProduct.productname,
-        sectorName: newProduct.sectorname,
-        brandName: newProduct.brandname,
-        categoryName: newProduct.categoryname,
-        packageName: newProduct.packagename,
-        capacity: newProduct.capacity,
-        incase: newProduct.incase,
-        barcode: newProduct.barcode,
-      });
-    } 
+    // for (const newProduct of newProducts) {
+    //   await new ColaNewProductPublisher(natsWrapper.client).publish({
+    //     productId: newProduct.productid,
+    //     productName: newProduct.productname,
+    //     sectorName: newProduct.sectorname,
+    //     brandName: newProduct.brandname,
+    //     categoryName: newProduct.categoryname,
+    //     packageName: newProduct.packagename,
+    //     capacity: newProduct.capacity,
+    //     incase: newProduct.incase,
+    //     barcode: newProduct.barcode,
+    //   });
+    // } 
 
     res.status(StatusCodes.OK).send({
       data: products,
