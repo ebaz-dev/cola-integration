@@ -1,16 +1,16 @@
 import { ColaProductSubjects } from "./cola-product-event-subjects";
 
-export interface ColaProductsUpdatedEvent {
+export interface ColaProductUpdatedEvent {
   subject: ColaProductSubjects.ColaProductUpdated;
   data: {
     productId: string;
-    productName: string;
-    sectorName: string;
-    brandName: string;
-    categoryName: string;
-    packageName: string;
-    capacity: string;
-    incase: number;
-    barcode: string;
+    updatedFields: {
+      productName?: string;
+      brandName?: string;
+      packageName?: string;
+      capacity?: string;
+      incase?: number;
+      barcode?: string;
+    };
   };
 }

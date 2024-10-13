@@ -1,5 +1,6 @@
 export enum ColaProductSubjects {
-  NewProductFound = "new-product:found",
-  ColaMerchantProductsUpdated = "merchant-products:updated",
-  ColaProductUpdated = "products:updated"
+  ColaProductRecieved = "product:recieved",
+  ColaMerchantProductUpdated = "merchant-product:updated",
+  ColaProductUpdated = "product:updated",
+  ColaProductDeactivated = "product:deactivated",
 }

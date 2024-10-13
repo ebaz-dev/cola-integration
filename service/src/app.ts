@@ -2,15 +2,15 @@ import express from "express";
 import "express-async-errors";
 import { json } from "body-parser";
 import { errorHandler, NotFoundError } from "@ebazdev/core";
+import { healthRouter } from "./routes/health";
 import { colaProductsRouter } from "./routes/cola-product-list";
 import { colaPromosRouter } from "./routes/cola-promo-list";
 import { colaInboundLoginRouter } from "./routes/cola-inbound-login";
 import { orderStatusUpdateRouter } from "./routes/cola-inbound-order-status";
 import { colaMerchantProductsRouter } from "./routes/cola-merchant-products";
-import { healthRouter } from "./routes/health";
 import { orderSendRouter } from "./routes/order-confirm";
-import { colaDashboardRouter } from "./routes/cola-dashboard-data";
-import { colaProfileRouter } from "./routes/cola-get-profile-";
+import { colaDashboardRouter } from "./routes/cola-get-dashboard-data";
+import { colaProfileRouter } from "./routes/cola-get-profile";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 

@@ -53,6 +53,8 @@ spec:
               value: "http://122.201.28.22:8083"
             - name: COCA_COLA_HOLDING_KEY
               value: "MCSCC"
+            - name: COLA_CUSTOMER_ID
+              value: "66ebe3e3c0acbbab7824b195"
 
           readinessProbe:
             httpGet:

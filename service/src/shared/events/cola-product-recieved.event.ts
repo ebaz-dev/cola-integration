@@ -1,7 +1,7 @@
 import { ColaProductSubjects } from "./cola-product-event-subjects";
 
-export interface ColaNewProductEvent {
-  subject: ColaProductSubjects.NewProductFound;
+export interface ColaProductRecievedEvent {
+  subject: ColaProductSubjects.ColaProductRecieved;
   data: {
     productId: string;
     productName: string;
@@ -9,7 +9,8 @@ export interface ColaNewProductEvent {
     brandName: string;
     categoryName: string;
     packageName: string;
-    capacity: string;
+    flavorName: string;
+    capacity: number;
     incase: number;
     barcode: string;
   };

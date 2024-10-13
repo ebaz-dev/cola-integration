@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Merchant } from "@ebazdev/customer";
 import { IntegrationCustomerIds } from "../shared/models/integration-customer-ids";
 import { Product, ProductActiveMerchants } from "@ebazdev/product";
-import { ColaMrechantProductsPublisher } from "../events/publisher/cola-merchant-product-updated-publisher";
+import { ColaMerchantProductUpdatedEventPublisher } from "../events/publisher/cola-merchant-product-updated-publisher";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
 import { natsWrapper } from "../nats-wrapper";
 import { Types } from "mongoose";
@@ -102,9 +102,11 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
       );
 
       if (productsToActivate.length || productsToDeactivate.length) {
-        await new ColaMrechantProductsPublisher(natsWrapper.client).publish({
+        await new ColaMerchantProductUpdatedEventPublisher(
+          natsWrapper.client
+        ).publish({
           merchantId: merchant.id,
-          customerId: IntegrationCustomerIds.cocaCola,
+          customerId: new Types.ObjectId(process.env.COLA_CUSTOMER_ID),
           activeList: productsToActivate,
           inActiveList: productsToDeactivate,
         });

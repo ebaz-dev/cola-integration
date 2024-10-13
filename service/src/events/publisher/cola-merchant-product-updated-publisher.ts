@@ -1,8 +1,8 @@
 import { Publisher } from "@ebazdev/core";
-import { ColaMerchantProductsUpdated } from "../../shared/events/cola-merchant-products-updated.event";
+import { ColaMerchantProductUpdated } from "../../shared/events/cola-merchant-product-updated.event";
 import { ColaProductSubjects } from "../../shared/events/cola-product-event-subjects";
 
-export class ColaMrechantProductsPublisher extends Publisher<ColaMerchantProductsUpdated> {
-  subject: ColaProductSubjects.ColaMerchantProductsUpdated =
-    ColaProductSubjects.ColaMerchantProductsUpdated;
+export class ColaMerchantProductUpdatedEventPublisher extends Publisher<ColaMerchantProductUpdated> {
+  subject: ColaProductSubjects.ColaMerchantProductUpdated =
+    ColaProductSubjects.ColaMerchantProductUpdated;
 }

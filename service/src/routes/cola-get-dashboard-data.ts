@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
 import { BadRequestError, NotFoundError } from "@ebazdev/core";
-import { Merchant } from "@ebazdev/customer"
+import { Merchant } from "@ebazdev/customer";
 
 const router = express.Router();
 const colaClient = new BaseAPIClient();
@@ -26,21 +26,23 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
       throw new BadRequestError("Required inputs are missing");
     }
 
-    const merchant = await Merchant.findById(tradeshopId)
+    const merchant = await Merchant.findById(tradeshopId);
 
     if (!merchant) {
-      throw new NotFoundError()
+      throw new NotFoundError();
     }
 
-    if (!merchant.tradeShops){
-      throw new BadRequestError("cola merchant not registered")
+    if (!merchant.tradeShops) {
+      throw new BadRequestError("cola merchant not registered");
     }
 
-    const integrationData = merchant.tradeShops
-    const colaId = integrationData.find((item) => item.holdingKey === "MCSCC")?.tsId;
-    
+    const integrationData = merchant.tradeShops;
+    const colaId = integrationData.find(
+      (item) => item.holdingKey === "MCSCC"
+    )?.tsId;
+
     if (!colaId) {
-      throw new BadRequestError("cola merchant not registered")
+      throw new BadRequestError("cola merchant not registered");
     }
 
     const [
@@ -90,9 +92,9 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
       error instanceof NotFoundError
     ) {
       throw error;
-    } else { 
+    } else {
       console.error("Cola integration product list get error:", error);
-      throw new BadRequestError("Something went wrong")
+      throw new BadRequestError("Something went wrong");
     }
   }
 });
