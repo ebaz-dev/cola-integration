@@ -1,4 +1,4 @@
-import { HoldingSupplierCodes, Merchant } from "@ebazdev/customer";
+import { HoldingSupplierCodes, Merchant, Supplier } from "@ebazdev/customer";
 import { Order, OrderStatus, PaymentMethods } from "@ebazdev/order";
 import axios from "axios";
 import { getColaToken } from "./get-token";
@@ -29,6 +29,17 @@ const sendOrder = async (orderId: string) => {
 
         if (order.status === OrderStatus.Created && order.paymentMethod != PaymentMethods.Cash) {
             return { order }
+        }
+        const supplier = await Supplier.findById(order.merchantId);
+
+        if (!supplier) {
+            console.log("Supplier not found");
+            throw new Error("Supplier not found");
+        }
+
+        if (supplier.holdingKey !== HoldingSupplierCodes.CocaCola) {
+            console.log("Supplier is not MCSCC");
+            throw new Error("Supplier is not MCSCC");
         }
 
         const merchant = await Merchant.findById(order.merchantId);
