@@ -51,6 +51,8 @@ spec:
               value: "S3bri?h@Ph?hesTL@iST"
             - name: COLA_API_URL
               value: "http://122.201.28.22:8083"
+            - name: COCA_COLA_HOLDING_KEY
+              value: "MCSCC"
 
           readinessProbe:
             httpGet:

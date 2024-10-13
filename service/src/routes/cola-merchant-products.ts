@@ -2,10 +2,11 @@ import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Merchant } from "@ebazdev/customer";
 import { IntegrationCustomerIds } from "../shared/models/integration-customer-ids";
-import { Product } from "@ebazdev/product";
+import { Product, ProductActiveMerchants } from "@ebazdev/product";
 import { ColaMrechantProductsPublisher } from "../events/publisher/cola-merchant-product-updated-publisher";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
 import { natsWrapper } from "../nats-wrapper";
+import { Types } from "mongoose";
 
 const router = express.Router();
 const colaClient = new BaseAPIClient();
@@ -16,13 +17,14 @@ interface RegisteredProduct {
 
 router.get("/merchant/product-list", async (req: Request, res: Response) => {
   try {
-    const holdingKey = "MCSCC";
+    const colaHoldingKey = process.env.COCA_COLA_HOLDING_KEY;
+
     const tsId = { $exists: true };
 
     const merchants = await Merchant.find({
       type: "merchant",
       tradeShops: {
-        $elemMatch: { holdingKey: holdingKey, tsId: tsId },
+        $elemMatch: { holdingKey: colaHoldingKey, tsId: tsId },
       },
     });
 
@@ -44,9 +46,6 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
         )?.productId || null,
     }));
 
-    let activeProductList: string[] = [];
-    let inActiveProductList: string[] = [];
-
     for (const merchant of merchants) {
       if (!merchant.tradeShops) {
         console.error(`No trade shops found for merchant: ${merchant.id}`);
@@ -54,8 +53,9 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
       }
 
       const tradeShop = merchant.tradeShops.find(
-        (shop) => shop.holdingKey === holdingKey
+        (shop) => shop.holdingKey === colaHoldingKey
       );
+
       const colaId = tradeShop?.tsId;
 
       if (!colaId) continue;
@@ -66,12 +66,25 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
         })
       ).data;
 
+      const merchantId = merchant._id as string;
+
+      const currentActiveProducts = await ProductActiveMerchants.find({
+        customerId: new Types.ObjectId(IntegrationCustomerIds.cocaCola),
+        entityReferences: { $in: [merchantId.toString()] },
+      }).select("productId");
+
+      const currentActiveProductList = currentActiveProducts.map((item) =>
+        item.productId.toString()
+      );
+
       const activeProducts = productResponse.data;
-      const shatlal = productResponse.shatlal;
 
       const activeProductIds = activeProducts.map(
         (product: any) => product.productid
       );
+
+      const activeProductList: string[] = [];
+      const inActiveProductList: string[] = [];
 
       registeredProducts.forEach(({ productId, thirdPartyId }) => {
         (activeProductIds.includes(thirdPartyId)
@@ -80,15 +93,22 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
         ).push(productId);
       });
 
-      await new ColaMrechantProductsPublisher(natsWrapper.client).publish({
-        merchantId: merchant.id,
-        customerId: IntegrationCustomerIds.cocaCola,
-        activeList: activeProductList,
-        inActiveList: inActiveProductList,
-      });
+      const productsToActivate = activeProductList.filter(
+        (productId) => !currentActiveProductList.includes(productId)
+      );
 
-      activeProductList = [];
-      inActiveProductList = [];
+      const productsToDeactivate = inActiveProductList.filter((productId) =>
+        currentActiveProductList.includes(productId)
+      );
+
+      if (productsToActivate.length || productsToDeactivate.length) {
+        await new ColaMrechantProductsPublisher(natsWrapper.client).publish({
+          merchantId: merchant.id,
+          customerId: IntegrationCustomerIds.cocaCola,
+          activeList: productsToActivate,
+          inActiveList: productsToDeactivate,
+        });
+      }
     }
 
     return res.status(StatusCodes.OK).json({ message: "successful" });
