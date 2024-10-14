@@ -30,7 +30,7 @@ const sendOrder = async (orderId: string) => {
         if (order.status === OrderStatus.Created && order.paymentMethod != PaymentMethods.Cash) {
             return { order }
         }
-        const supplier = await Supplier.findById(order.merchantId);
+        const supplier = await Supplier.findById(order.supplierId);
 
         if (!supplier) {
             console.log("Supplier not found");
