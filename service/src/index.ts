@@ -5,6 +5,7 @@ import { OrderConfirmedListener } from "./events/listener/order-confirmed-listen
 import { BaseAPIClient } from "./shared/utils/cola-api-client";
 import { OrderCreatedListener } from "./events/listener/order-created-listener";
 import { OrderPaymentMethodUpdatedListener } from "./events/listener/order-payment-method-updated-listener";
+import { MerchantCodeRegisteredListener } from "./events/listener/merchant-registered-listener";
 import cron from "node-cron";
 import axios from "axios";
 
