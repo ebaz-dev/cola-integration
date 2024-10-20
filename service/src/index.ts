@@ -105,9 +105,10 @@ const start = async () => {
     })();
 
     cron.schedule(
-      "0 4 * * *",
+      "0 6 * * *",
       async () => {
         try {
+          console.log('**************************************');
           console.log("Running the cron job of merchant products.");
           await axios.get(
             `http://localhost:3000${apiPrefix}/merchant/product-list`
@@ -126,9 +127,10 @@ const start = async () => {
     );
 
     cron.schedule(
-      "30 4 * * *",
+      "30 6 * * *",
       async () => {
         try {
+          console.log('**************************************');
           console.log("Running cron job for total promo list.");
           await axios.get(`http://localhost:3000${apiPrefix}/promo-list`);
           console.log("Promo list job executed successfully.");
