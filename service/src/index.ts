@@ -88,6 +88,7 @@ const start = async () => {
     new OrderConfirmedListener(natsWrapper.client).listen();
     new OrderCreatedListener(natsWrapper.client).listen();
     new OrderPaymentMethodUpdatedListener(natsWrapper.client).listen();
+    new MerchantCodeRegisteredListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");
@@ -104,7 +105,7 @@ const start = async () => {
     })();
 
     cron.schedule(
-      "0 4 * * *",
+      "* * * * *",
       async () => {
         try {
           console.log("Running the cron job of merchant products.");

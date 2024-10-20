@@ -170,8 +170,8 @@ const getUpdatedFields = (existingPromo: any, promo: any) => {
     updatedFields.giftQuantity = giftQuantity;
   }
 
-  if (existingPromo.isActive !== (promo.isactive === 1)) {
-    updatedFields.isActive = promo.isactive === 1;
+  if (existingPromo.isActive !== (promo.isactive)) {
+    updatedFields.isActive = promo.isactive;
   }
 
   if (!arraysEqual(existingPromo.products, promo.products)) {

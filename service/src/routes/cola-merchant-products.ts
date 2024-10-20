@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Merchant } from "@ebazdev/customer";
-import { IntegrationCustomerIds } from "../shared/models/integration-customer-ids";
 import { Product, ProductActiveMerchants } from "@ebazdev/product";
 import { ColaMerchantProductUpdatedEventPublisher } from "../events/publisher/cola-merchant-product-updated-publisher";
 import { BaseAPIClient } from "../shared/utils/cola-api-client";
@@ -18,6 +17,7 @@ interface RegisteredProduct {
 router.get("/merchant/product-list", async (req: Request, res: Response) => {
   try {
     const colaHoldingKey = process.env.COCA_COLA_HOLDING_KEY;
+    const colaCustomerId = process.env.COCA_COLA_CUSTOMER_ID;
 
     const tsId = { $exists: true };
 
@@ -35,14 +35,14 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
     }
 
     const products = await Product.find({
-      customerId: IntegrationCustomerIds.cocaCola,
+      customerId: colaCustomerId,
     }).lean();
 
     const registeredProducts: RegisteredProduct[] = products.map((product) => ({
       productId: product._id.toString(),
       thirdPartyId:
         product.thirdPartyData?.find((data: any) =>
-          data.customerId.equals(IntegrationCustomerIds.cocaCola)
+          data.customerId.equals(colaCustomerId)
         )?.productId || null,
     }));
 
@@ -69,7 +69,7 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
       const merchantId = merchant._id as string;
 
       const currentActiveProducts = await ProductActiveMerchants.find({
-        customerId: new Types.ObjectId(IntegrationCustomerIds.cocaCola),
+        customerId: new Types.ObjectId(colaCustomerId),
         entityReferences: { $in: [merchantId.toString()] },
       }).select("productId");
 
@@ -115,7 +115,7 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).json({ message: "successful" });
   } catch (error: any) {
-    console.log(error);
+    console.log({ 'Error occured at /merchant/product-list': error});
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       message: "Something went wrong.",
     });

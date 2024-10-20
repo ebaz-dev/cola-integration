@@ -12,6 +12,8 @@ import { Types } from "mongoose";
 const router = express.Router();
 const colaClient = new BaseAPIClient();
 
+const colaCustomerId = process.env.COLA_CUSTOMER_ID;
+
 interface ProductData {
   productid: string;
   productname: string;
@@ -41,11 +43,6 @@ async function sanitizeBarcode(barcode: string): Promise<string> {
 
 router.get("/product-list", async (req: Request, res: Response) => {
   try {
-    const colaCustomerId = process.env.COLA_CUSTOMER_ID;
-    if (!colaCustomerId) {
-      throw new BadRequestError("COLA_CUSTOMER_ID must be defined");
-    }
-
     const productsResponse = await colaClient.post(
       `/api/ebazaar/getdataproductinfo`,
       {}
@@ -122,6 +119,7 @@ router.get("/product-list", async (req: Request, res: Response) => {
     if (deactiveList.length > 0) {
       for (const deactiveProductId of deactiveList) {
         const existingProduct = existingProductMap[deactiveProductId];
+
         if (existingProduct) {
           await new ColaProductDeactivatedEventPublisher(
             natsWrapper.client
