@@ -126,7 +126,7 @@ const start = async () => {
     );
 
     cron.schedule(
-      "* * * * *",
+      "30 4 * * *",
       async () => {
         try {
           console.log("Running cron job for total promo list.");
