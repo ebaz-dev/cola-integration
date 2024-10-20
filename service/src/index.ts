@@ -105,7 +105,7 @@ const start = async () => {
     })();
 
     cron.schedule(
-      "* * * * *",
+      "0 4 * * *",
       async () => {
         try {
           console.log("Running the cron job of merchant products.");
@@ -126,7 +126,7 @@ const start = async () => {
     );
 
     cron.schedule(
-      "30 4 * * *",
+      "* * * * *",
       async () => {
         try {
           console.log("Running cron job for total promo list.");
