@@ -12,7 +12,7 @@ import { natsWrapper } from "../../nats-wrapper";
 import { Types } from "mongoose";
 
 const colaClient = new BaseAPIClient();
-const colaCustomerId = process.env.COCA_COLA_CUSTOMER_ID;
+const colaCustomerId = "66ebe3e3c0acbbab7824b195";
 
 interface RegisteredProduct {
   productId: string;

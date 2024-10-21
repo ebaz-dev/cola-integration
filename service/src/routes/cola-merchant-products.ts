@@ -16,8 +16,8 @@ interface RegisteredProduct {
 
 router.get("/merchant/product-list", async (req: Request, res: Response) => {
   try {
-    const colaHoldingKey = process.env.COCA_COLA_HOLDING_KEY;
-    const colaCustomerId = process.env.COCA_COLA_CUSTOMER_ID;
+    const colaHoldingKey = "MCSCC";
+    const colaCustomerId = "66ebe3e3c0acbbab7824b195";
 
     const tsId = { $exists: true };
 
@@ -35,7 +35,7 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
     }
 
     const products = await Product.find({
-      customerId: colaCustomerId,
+      customerId: new Types.ObjectId(colaCustomerId),
     }).lean();
 
     const registeredProducts: RegisteredProduct[] = products.map((product) => ({
@@ -57,7 +57,6 @@ router.get("/merchant/product-list", async (req: Request, res: Response) => {
       );
 
       const colaId = tradeShop?.tsId;
-
       if (!colaId) continue;
 
       const productResponse = (
