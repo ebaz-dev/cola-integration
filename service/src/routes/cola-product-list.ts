@@ -14,6 +14,8 @@ const colaClient = new BaseAPIClient();
 
 const colaCustomerId = process.env.COLA_CUSTOMER_ID;
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 interface ProductData {
   productid: string;
   productname: string;
@@ -99,19 +101,19 @@ router.get("/product-list", async (req: Request, res: Response) => {
         const capacity = await convertCapacityToInteger(newProduct.capacity);
         const sanitizedBarcode = await sanitizeBarcode(newProduct.barcode);
 
+        const eventPayload: any = {
+          productId: newProduct.productid,
+          productName: newProduct.productname,
+          brandName: newProduct.brandname,
+          capacity: capacity,
+          incase: newProduct.incase,
+          barcode: sanitizedBarcode,
+        };
+
+        await delay(500);
+
         await new ColaProductRecievedEventPublisher(natsWrapper.client).publish(
-          {
-            productId: newProduct.productid,
-            productName: newProduct.productname,
-            sectorName: newProduct.sectorname,
-            brandName: newProduct.brandname,
-            categoryName: newProduct.categoryname,
-            packageName: newProduct.packagename,
-            flavorName: newProduct.flavorname,
-            capacity: capacity,
-            incase: newProduct.incase,
-            barcode: sanitizedBarcode,
-          }
+          eventPayload
         );
       }
     }
@@ -119,6 +121,8 @@ router.get("/product-list", async (req: Request, res: Response) => {
     if (deactiveList.length > 0) {
       for (const deactiveProductId of deactiveList) {
         const existingProduct = existingProductMap[deactiveProductId];
+
+        await delay(500);
 
         if (existingProduct) {
           await new ColaProductDeactivatedEventPublisher(
@@ -147,6 +151,10 @@ router.get("/product-list", async (req: Request, res: Response) => {
           updatedFields.productName = product.productname;
         }
 
+        if (!existingProduct.brandId) {
+          updatedFields.brandName = product.brandname;
+        }
+
         if (existingCapacity !== capacity) {
           updatedFields.capacity = capacity;
         }
@@ -163,10 +171,12 @@ router.get("/product-list", async (req: Request, res: Response) => {
         }
 
         if (Object.keys(updatedFields).length > 0) {
+          await delay(500);
+
           await new ColaProductsUpdatedEventPublisher(
             natsWrapper.client
           ).publish({
-            productId: product.productid,
+            productId: existingProduct._id,
             updatedFields,
           });
         }

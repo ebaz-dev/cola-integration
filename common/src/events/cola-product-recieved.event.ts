@@ -7,9 +7,6 @@ export interface ColaProductRecievedEvent {
     productName: string;
     sectorName: string;
     brandName: string;
-    categoryName: string;
-    packageName: string;
-    flavorName: string;
     capacity: number;
     incase: number;
     barcode: string;
