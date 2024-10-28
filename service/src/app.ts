@@ -8,7 +8,7 @@ import { colaPromosRouter } from "./routes/cola-promo-list";
 import { colaInboundLoginRouter } from "./routes/cola-inbound-login";
 import { orderStatusUpdateRouter } from "./routes/cola-inbound-order-status";
 import { colaMerchantProductsRouter } from "./routes/cola-merchant-products";
-import { orderSendRouter } from "./routes/order-confirm";
+import { orderSendRouter } from "./routes/order-send";
 import { colaDashboardRouter } from "./routes/cola-get-dashboard-data";
 import { colaProfileRouter } from "./routes/cola-get-profile";
 import cookieSession from "cookie-session";
