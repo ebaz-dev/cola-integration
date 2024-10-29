@@ -38,7 +38,7 @@ router.post(
         throw new BadRequestError("Invalid status.");
       }
 
-      const order = Order.findOne({ _id: orderId });
+      const order = Order.findOne({ orderNo: orderId });
 
       if (!order) {
         throw new BadRequestError("Order not found.");
