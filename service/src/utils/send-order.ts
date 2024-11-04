@@ -84,19 +84,21 @@ const sendOrder = async (orderId: string) => {
       );
       if (!order.thirdPartyData) {
         order.thirdPartyData = <OrderThirdPartyDataDoc>{
-          response: [getOrderNoResponse],
+          response: [getOrderNoResponse.data],
         };
       } else if (!order.thirdPartyData.response) {
-        order.thirdPartyData.response = [getOrderNoResponse];
+        order.thirdPartyData.response = [getOrderNoResponse.data];
       } else {
-        order.thirdPartyData.response.push(getOrderNoResponse);
+        order.thirdPartyData.response.push(getOrderNoResponse.data);
       }
       order.thirdPartyData.updatedAt = new Date();
+      console.log("order", order);
       if (
         !getOrderNoResponse.data ||
         !getOrderNoResponse.data.data[0].orderno
       ) {
         await order.save();
+        console.log("order no error");
         throw new Error("Get order no: error");
       }
 
@@ -127,7 +129,7 @@ const sendOrder = async (orderId: string) => {
         maxBodyLength: Infinity,
       }
     );
-    order.thirdPartyData.response.push(res);
+    order.thirdPartyData.response.push(res.data);
     await order.save();
     return { colaOrderNo: order.thirdPartyId, orderDetails };
   } catch (error) {
