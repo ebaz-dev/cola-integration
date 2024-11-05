@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cola-integration-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cola-integration
+  template:
+    metadata:
+      labels:
+        app: cola-integration
+    spec:
+      containers:
+        - name: cola-integration
+          image: tsendebna/cola-integration:latest
+          env:
+            - name: MONGO_URI
+              value: "mongodb://ebaz-dev:774CPXo65J8i@103.229.178.56:27017/ebaz-dev?directConnection=true"
+            - name: JWT_KEY
+              value: "279112db517a6fadbfbb53500ee5e142a9036f1c972739e895c0d3ff7aa84af3"
+            - name: NATS_URL
+              value: 'http://114.129.42.59:4222'
+            - name: NATS_CLUSTER_ID
+              value: "ebazaar_dev"
+            - name: NATS_USER
+              value: "nats_dev"
+            - name: NATS_PASS
+              value: "NaTs@Dev$EBaz"
+            - name: NATS_CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: "development"
+            - name: COLA_OUTBOUND_USERNAME
+              value: "bazaar"
+            - name: COLA_OUTBOUND_PASSWORD
+              value: "M8@46jkljkjkljlk#$2024"
+            - name: COLA_BASE_URI
+              value: "http://122.201.28.22:8083"
+            - name: COLA_INBOUND_USERNAME
+              value: "coca-cola"
+            - name: COLA_INBOUND_PASSWORD
+              value: "wr!cuwr5WUjik*X$-ru#"
+            - name: COLA_INBOUND_ACCESS_TOKEN_SECRET
+              value: "S3bri?h@Ph?hesTL@iST"
+            - name: COLA_API_URL
+              value: "http://122.201.28.22:8083"
+            - name: COCA_COLA_HOLDING_KEY
+              value: "MCSCC"
+            - name: COLA_CUSTOMER_ID
+              value: "66ebe3e3c0acbbab7824b195"
+
+          readinessProbe:
+            httpGet:
+              path: /api/v1/integration/cola/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/v1/integration/cola/health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cola-integration-srv
+spec:
+  selector:
+    app: cola-integration
+  ports:
+    - name: cola-integration
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
