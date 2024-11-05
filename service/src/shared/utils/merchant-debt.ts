@@ -47,22 +47,29 @@ const checkMerchantDebt = async (merchantId: string) => {
   const merchantPayments = paymentData.data.data;
   let debts: any = [];
 
-  merchantPayments.map((p: any) => {
+  const payments = merchantPayments.map((p: any) => {
     if (p.amount > p.payamount) {
       const invoiceDate = new Date(p.invoicedate);
       const today = new Date();
       const payDate = new Date(
         invoiceDate.setDate(invoiceDate.getDate() + merchantProfile.agingday)
       );
-      if (today > payDate) {
+
+      const diff = today.getTime() - payDate.getTime();
+      p.overDays = Math.round(diff / (1000 * 3600 * 24));
+
+      p.overdue = today > payDate;
+
+      if (p.overdue) {
         debts.push(p);
       }
     }
+    return p;
   });
 
   return {
     profile: merchantProfile,
-    payments: merchantPayments,
+    payments,
     debts,
   };
 };
