@@ -1,6 +1,6 @@
 {
   "name": "@ebazdev/cola-integration",
-  "version": "1.0.22",
+  "version": "1.0.25",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "files": [
@@ -32,7 +32,6 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@ebazdev/customer": "^1.0.26",
     "@types/jsonwebtoken": "^9.0.6",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",

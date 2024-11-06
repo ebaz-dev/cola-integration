@@ -1,35 +1,10 @@
-import { HoldingSupplierCodes, Merchant } from "@ebazdev/customer";
-import { Types } from "mongoose";
 import { BaseAPIClient } from "./cola-api-client";
 
 const colaClient = new BaseAPIClient();
 
-const checkMerchantDebt = async (merchantId: string) => {
-  const { COLA_API_URL } =
-    process.env.NODE_ENV === "development" ? process.env : process.env;
-
-  if (!COLA_API_URL) {
-    throw new Error("Send cola order: Cola credentials are missing.");
-  }
-
-  const merchant = await Merchant.findById(new Types.ObjectId(merchantId));
-
-  if (!merchant) {
-    console.log("Merchant not found");
-    throw new Error("Merchant not found");
-  }
-
-  const tradeshop = merchant.tradeShops?.find(
-    (ts: any) => ts.holdingKey === HoldingSupplierCodes.CocaCola
-  );
-
-  if (!tradeshop) {
-    console.log("Tradeshop not found");
-    throw new Error("Tradeshop not found");
-  }
-
+const colaMerchantPayments = async (tradeshopId: string) => {
   const profileData = await colaClient.post("/api/ebazaar/getdataprofile", {
-    tradeshopid: tradeshop.tsId,
+    tradeshopid: tradeshopId,
   });
   if (!profileData.data || !profileData.data.data[0]) {
     throw new Error("Get profile data: error");
@@ -37,7 +12,7 @@ const checkMerchantDebt = async (merchantId: string) => {
   const merchantProfile = profileData.data.data[0];
 
   const paymentData = await colaClient.post("/api/ebazaar/getdatapayment", {
-    tradeshopid: tradeshop.tsId,
+    tradeshopid: tradeshopId,
   });
 
   if (!paymentData.data || !paymentData.data.data[0].orderno) {
@@ -74,4 +49,4 @@ const checkMerchantDebt = async (merchantId: string) => {
   };
 };
 
-export { checkMerchantDebt };
+export { colaMerchantPayments };

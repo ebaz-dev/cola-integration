@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { checkMerchantDebt } from "../shared";
+import { checkMerchantDebt } from "../utils/merchant-debt";
 
 const router = express.Router();
 
