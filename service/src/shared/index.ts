@@ -9,5 +9,8 @@ export * from "./events/cola-promo-updated.event";
 export * from "./models/cola-promo";
 export * from "./events/cola-order-status-subjects";
 export * from "./events/cola-order-status-recieved.event";
-export * from "./utils/cola-api-client";
-export * from "./utils/merchant-payments";
+
+export * from "./events/bas-product-deactivated.event";
+export * from "./events/bas-product-event-subjects";
+export * from "./events/bas-product-recieved.event";
+export * from "./events/bas-product-updated.event";

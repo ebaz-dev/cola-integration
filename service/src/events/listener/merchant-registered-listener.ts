@@ -71,6 +71,8 @@ export class MerchantCodeRegisteredListener extends Listener<SupplierCodeAddedEv
         });
 
         msg.ack();
+      } else {
+        msg.ack();
       }
     } catch (error) {
       console.error("Error processing MerchantCodeRegisteredListener:", error);
