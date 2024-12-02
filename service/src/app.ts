@@ -14,6 +14,7 @@ import { colaProfileRouter } from "./routes/cola-get-profile";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { colaPaymentRouter } from "./routes/get-payment";
+import { merchantDebtRouter } from "./routes/check-merchant-debt";
 import { anungooProductsRouter } from "./routes/anungoo/anungoo-products";
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.use(apiPrefix, orderSendRouter);
 app.use(apiPrefix, colaDashboardRouter);
 app.use(apiPrefix, colaProfileRouter);
 app.use(apiPrefix, colaPaymentRouter);
+app.use(apiPrefix, merchantDebtRouter);
 app.use(apiPrefix, anungooProductsRouter);
 
 app.all("*", async () => {
