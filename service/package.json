@@ -27,7 +27,7 @@
   "dependencies": {
     "@ebazdev/auth": "^1.0.20",
     "@ebazdev/core": "^1.1.22",
-    "@ebazdev/customer": "^1.0.23",
+    "@ebazdev/customer": "^1.0.38",
     "@ebazdev/order": "^1.0.38",
     "@ebazdev/product": "^1.0.81",
     "@types/cookie-session": "^2.0.49",

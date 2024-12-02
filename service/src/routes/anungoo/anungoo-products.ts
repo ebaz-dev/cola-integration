@@ -1,13 +1,13 @@
 import express, { Request, Response } from "express";
 import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { Product } from "@ebazdev/product";
-import { Customer } from "@ebazdev/customer";
+import { Supplier } from "@ebazdev/customer";
 import { StatusCodes } from "http-status-codes";
-import { BasProductRecievedEventPublisher } from "../events/publisher/bas-product-recieved-publisher";
-import { BasProductUpdatedEventPublisher } from "../events/publisher/bas-product-updated-publisher";
-import { BasProductDeactivatedEventPublisher } from "../events/publisher/bas-product-deactivated-publisher";
-import { AnungooAPIClient } from "../shared/utils/anungoo-api-client";
-import { natsWrapper } from "../nats-wrapper";
+import { BasProductRecievedEventPublisher } from "../../events/publisher/bas-product-recieved-publisher";
+import { BasProductUpdatedEventPublisher } from "../../events/publisher/bas-product-updated-publisher";
+import { BasProductDeactivatedEventPublisher } from "../../events/publisher/bas-product-deactivated-publisher";
+import { AnungooAPIClient } from "../../shared/utils/anungoo-api-client";
+import { natsWrapper } from "../../nats-wrapper";
 import { Types } from "mongoose";
 
 const router = express.Router();
@@ -50,20 +50,27 @@ async function sanitizeBarcode(barcode: string): Promise<string> {
   return barcode.trim().replace(/^[\s.]+|[\s.]+$/g, "");
 }
 
-router.get("/bas/product-list", async (req: Request, res: Response) => {
+router.get("/anungoo/product-list", async (req: Request, res: Response) => {
   try {
-    const anungoo = await Customer.findOne({
+    const anungoo = await Supplier.find({
       type: "supplier",
       holdingKey: "AG",
     });
-    const anungooId = anungoo?._id;
+
+    const anungooPng = anungoo?.filter((item) => item?.vendorKey === "AGPNG");
+    const anungooIone = anungoo?.filter((item) => item?.vendorKey === "AGIONE");
 
     const productsResponse = await AnungooAPIClient.getClient().post(
       `/api/ebazaar/getdataproductinfo`,
       {}
     );
 
-    const products: ProductData[] = productsResponse?.data?.data || [];
+    let products: ProductData[] = productsResponse?.data?.data || [];
+
+    products = products.filter(
+      (product) => product.business === "ag_nonfood" || product.business === "ag_food"
+    );
+
     const total = products.length;
 
     if (products.length === 0) {
@@ -75,10 +82,8 @@ router.get("/bas/product-list", async (req: Request, res: Response) => {
       });
     }
 
-    const productIds = products.map((item: any) => item.productid);
-
     const existingProducts = await Product.find({
-      customerId: anungooId,
+      customerId: {$in: [anungooPng[0]?._id, anungooIone[0]?._id]},
     });
 
     let existingIds: any = [];
@@ -86,7 +91,9 @@ router.get("/bas/product-list", async (req: Request, res: Response) => {
     const existingProductMap = existingProducts.reduce((map, item) => {
       if (item.thirdPartyData && Array.isArray(item.thirdPartyData)) {
         const basIntegrationData = item.thirdPartyData.find(
-          (data: any) => data?.customerId?.toString() === anungooId
+          (data: any) =>
+            data?.customerId?.toString() === (anungooPng[0]?._id as Types.ObjectId).toString() ||
+            data?.customerId?.toString() === (anungooIone[0]?._id as Types.ObjectId).toString()
         );
 
         if (basIntegrationData) {
@@ -108,8 +115,11 @@ router.get("/bas/product-list", async (req: Request, res: Response) => {
           ? await sanitizeBarcode(newProduct.barcode)
           : null;
 
+        const supplierId = newProduct.business === "ag_nonfood" ? anungooPng[0]?._id : anungooIone[0]?._id;
+
         const eventPayload: any = {
-          productId: newProduct.productid,
+          supplierId: supplierId,
+          basId: newProduct.productid,
           productName: newProduct.productname,
           brandName: newProduct.brandname,
           incase: newProduct.incase,
@@ -147,4 +157,4 @@ router.get("/bas/product-list", async (req: Request, res: Response) => {
   }
 });
 
-export { router as basProductsRouter };
+export { router as anungooProductsRouter };
