@@ -25,17 +25,19 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
       holdingKey: "AG",
     });
 
-    if (!anungoo) {
+    if (!anungoo || anungoo.length === 0) {
       throw new Error("Supplier not found.");
     }
 
-    const anungooPngId = anungoo?.filter(
-      (item) => item?.vendorKey === "AGPNG"
-    )?.[0].id;
+    const anungooPng = anungoo.find((item) => item?.vendorKey === "AGPNG");
+    const anungooIone = anungoo.find((item) => item?.vendorKey === "AGIONE");
 
-    const anungooIoneId = anungoo?.filter(
-      (item) => item?.vendorKey === "AGIONE"
-    )?.[0].id;
+    if (!anungooPng || !anungooIone) {
+      throw new Error("Anungoo PNG or Ione supplier not found.");
+    }
+
+    const anungooPngId = anungooPng.id;
+    const anungooIoneId = anungooIone.id;
 
     const promosResponse = await AnungooAPIClient.getClient().post(
       "/api/ebazaar/getdatapromo",
@@ -52,13 +54,10 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
     }
 
     const basPromoProducts: basPromoProducts[] = promoData.promo_products || [];
-
     const basPromoGiftProducts: basPromoGiftProducts[] =
       promoData.promo_giftproducts || [];
-
     const basGiftProductPackas: basPromoGiftProductsPackage[] =
       promoData.promo_giftproductspackage || [];
-
     const basPromoTradeshops: basPromoTradeshops[] =
       promoData.promo_tradeshops || [];
 
@@ -78,6 +77,7 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
       const matchTradeshops = basPromoTradeshops.find(
         (p) => p.PromoID === promo.promoid
       );
+
       promo.thirdPartyProducts = matchProducts ? matchProducts.Products : [];
       promo.thirdPartyGiftProducts = matchGiftProducts
         ? matchGiftProducts.GiftProducts
@@ -134,7 +134,7 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
           (promo.products.length > 0 || promo.giftProducts.length > 0) &&
           promo.promotypebycode
         ) {
-          await new BasPromoRecievedEventPublisher(natsWrapper.client).publish({
+            await new BasPromoRecievedEventPublisher(natsWrapper.client).publish({
             supplierId: promo.supplierId as unknown as Types.ObjectId,
             name: promo.promoname,
             startDate: promo.startdate,
@@ -152,20 +152,18 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
             thirdPartyPromoTypeId: promo.promotypeid,
             thirdPartyPromoType: promo.promotype,
             thirdPartyPromoTypeCode: promo.promotypebycode,
-            thirdPartyProducts: promo.thirdPartyProducts,
-            thirdPartyGiftProducts: promo.thirdPartyGiftProducts,
-            thirdPartyGiftProductPackage: promo.thirdPartyGiftProductPackage,
-            thirdPartyTradeshops: promo.thirdPartyTradeshops,
+            // thirdPartyProducts: promo.thirdPartyProducts,
+            // thirdPartyGiftProducts: promo.thirdPartyGiftProducts,
+            // thirdPartyGiftProductPackage: promo.thirdPartyGiftProductPackage,
+            // thirdPartyTradeshops: promo.thirdPartyTradeshops,
           });
         }
       }
     }
 
-    return res
-      .status(StatusCodes.OK)
-      .send({ status: "success" });
+    return res.status(StatusCodes.OK).send({ status: "success" });
   } catch (error: any) {
-    console.error("Cola integration promo list get error:", error);
+    console.error("Bas integration promo list get error:", error);
 
     return res.status(StatusCodes.BAD_REQUEST).send({
       status: "failure",
@@ -186,7 +184,7 @@ const fetchEbazaarProductIds = async (
     "thirdPartyData.productId": { $in: thirdPartyIds },
     customerId: { $in: [anungooPngId, anungooIoneId] },
   }).select("_id thirdPartyData.productId customerId")) as ProductDoc[];
-  console.log(products.length);
+
   if (products.length === 0) {
     return { customerId: null, productIds: [] };
   }
@@ -254,8 +252,8 @@ const getUpdatedFields = (existingPromo: any, promo: any): any => {
     updatedFields.giftProducts = promo.giftProducts;
   }
 
-  if (!arraysEqual(existingPromo.tradeshops, promo.colaTradeshops)) {
-    updatedFields.tradeshops = promo.colaTradeshops;
+  if (!arraysEqual(existingPromo.tradeshops, promo.tradeshops)) {
+    updatedFields.tradeshops = promo.tradeshops;
   }
 
   return updatedFields;

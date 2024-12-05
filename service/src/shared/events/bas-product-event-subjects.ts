@@ -1,5 +1,5 @@
 export enum BasProductSubjects {
-  BasProductRecieved = "product:recieved",
-  BasProductUpdated = "product:updated",
-  BasProductDeactivated = "product:deactivated",
+  BasProductRecieved = "basproduct:recieved",
+  BasProductUpdated = "basproduct:updated",
+  BasProductDeactivated = "basproduct:deactivated",
 }

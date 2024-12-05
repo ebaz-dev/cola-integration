@@ -1,4 +1,4 @@
 export enum BasPromoSubjects {
-  BasPromoRecieved = "promo:recieved",
-  BasPromoUpdated = "promo:updated",
+  BasPromoRecieved = "baspromo:recieved",
+  BasPromoUpdated = "baspromo:updated",
 }
