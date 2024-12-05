@@ -16,3 +16,6 @@ export * from "./events/bas-product-deactivated.event";
 export * from "./events/bas-product-event-subjects";
 export * from "./events/bas-product-recieved.event";
 export * from "./events/bas-product-updated.event";
+export * from "./events/bas-promo-event-subjects";
+export * from "./events/bas-promo-recieved.event";
+export * from "./events/bas-promo-updated.event";  
