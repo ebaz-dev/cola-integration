@@ -16,6 +16,7 @@ import dotenv from "dotenv";
 import { colaPaymentRouter } from "./routes/get-payment";
 import { merchantDebtRouter } from "./routes/check-merchant-debt";
 import { anungooProductsRouter } from "./routes/anungoo/anungoo-products";
+import { AnungooPromoListRouter } from "./routes/anungoo/anungoo-promos";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use(apiPrefix, colaProfileRouter);
 app.use(apiPrefix, colaPaymentRouter);
 app.use(apiPrefix, merchantDebtRouter);
 app.use(apiPrefix, anungooProductsRouter);
+app.use(apiPrefix, AnungooPromoListRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();
