@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { Product } from "@ebazdev/product";
+import { Product, Vendor } from "@ebazdev/product";
 import { Supplier } from "@ebazdev/customer";
 import { BadRequestError } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
@@ -7,8 +7,11 @@ import { natsWrapper } from "../../nats-wrapper";
 import { Types } from "mongoose";
 import { BasProductRecievedEventPublisher } from "../../events/publisher/bas-product-recieved-publisher";
 import { BasProductUpdatedEventPublisher } from "../../events/publisher/bas-product-updated-publisher";
-import { AnungooAPIClient } from "../../utils/apiclients/anungoo-api-client";
-import { BasProductData } from "../../shared/models/bas-product";
+import { TotalAPIClient } from "../../utils/apiclients/total-api-client";
+import {
+  BasProductData,
+  ThirdPartyData,
+} from "../../shared/models/bas-product";
 import {
   convertCapacity,
   barcodeSanitizer,
@@ -17,52 +20,57 @@ import {
 
 const router = express.Router();
 
-router.get("/anungoo/product-list", async (req: Request, res: Response) => {
+router.get("/product-list", async (req: Request, res: Response) => {
   try {
-    const anungoo = await Supplier.find({
+    const vendorName = req.body.vendorName;
+
+    const totalSupplier = await Supplier.findOne({
       type: "supplier",
-      holdingKey: "AG",
+      holdingKey: "TD",
     });
 
-    if (!anungoo) {
-      throw new BadRequestError("Anungoo supplier not found.");
+    if (!totalSupplier) {
+      throw new BadRequestError("Total supplier not found.");
     }
 
-    const anungooPng = anungoo?.filter((item) => item?.vendorKey === "AGPNG");
-    const anungooIone = anungoo?.filter((item) => item?.vendorKey === "AGIONE");
+    const totalSupplierId = totalSupplier?._id as Types.ObjectId;
 
-    const productsResponse = await AnungooAPIClient.getClient().post(
-      `/api/ebazaar/getdataproductinfo`,
-      {}
+    const vendor = await Vendor.findOne({
+      supplierId: totalSupplierId,
+      apiCompany: vendorName,
+    });
+
+    if (!vendor) {
+      throw new BadRequestError("Vendor not found.");
+    }
+
+    const vendorId = vendor?._id as Types.ObjectId;
+
+    const productsResponse = await TotalAPIClient.getClient().post(
+      "/api/ebazaar/getdataproductinfo",
+      { company: vendorName }
     );
 
-    let basProducts: BasProductData[] = productsResponse?.data?.data || [];
-
-    basProducts = basProducts.filter(
-      (product) =>
-        product.business === "ag_nonfood" || product.business === "ag_food"
-    );
-
+    const basProducts: BasProductData[] = productsResponse?.data?.data || [];
     if (basProducts.length === 0) {
       throw new BadRequestError("No products from bas API.");
     }
 
-    const existingProducts = await Product.find({
-      customerId: { $in: [anungooPng[0]?._id, anungooIone[0]?._id] },
+    const existingEbProducts = await Product.find({
+      customerId: totalSupplierId,
+      vendorId: vendorId,
     });
 
-    const existingEbProductsMap = existingProducts.reduce((map, item) => {
+    const existingEbProductsMap = existingEbProducts.reduce((map, item) => {
       if (item.thirdPartyData && Array.isArray(item.thirdPartyData)) {
-        const basIntegrationData = item.thirdPartyData.find(
-          (data: any) =>
-            data?.customerId?.toString() ===
-              (anungooPng[0]?._id as Types.ObjectId).toString() ||
-            data?.customerId?.toString() ===
-              (anungooIone[0]?._id as Types.ObjectId).toString()
+        const thirdPartyDataArray = item.thirdPartyData as ThirdPartyData[];
+
+        const colaIntegrationData = thirdPartyDataArray.find(
+          (data: ThirdPartyData) => data?.customerId.equals(totalSupplierId)
         );
 
-        if (basIntegrationData) {
-          map[basIntegrationData.productId] = item;
+        if (colaIntegrationData) {
+          map[colaIntegrationData.productId] = item;
         }
       }
       return map;
@@ -78,26 +86,22 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         basExistingProducts.push(item);
       }
     });
-    console.log(basNewProducts.length);
+
     if (basNewProducts.length > 0) {
       for (const item of basNewProducts) {
         const capacity = await convertCapacity(item.capacity);
         const sanitizedBarcode = await barcodeSanitizer(item.barcode);
 
-        const supplierId =
-          item.business === "ag_nonfood"
-            ? anungooPng[0]?._id
-            : anungooIone[0]?._id;
-
         const eventPayload: any = {
-          supplierId: supplierId as Types.ObjectId,
+          supplierId: totalSupplierId,
           basId: item.productid,
           productName: item.productname,
           brandName: item.brandname,
           incase: item.incase,
           sectorName: item.sectorname,
-          barcode: sanitizedBarcode,
           business: item.business,
+          barcode: sanitizedBarcode,
+          vendorId: vendorId,
         };
 
         if (capacity !== 0) {
@@ -149,27 +153,22 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         if (Object.keys(updatedFields).length > 0) {
           await eventDelay(500);
 
-          const supplierId =
-            item.business === "ag_nonfood"
-              ? anungooPng[0]?._id
-              : anungooIone[0]?._id;
-
-          // await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
-          //   {
-          //     supplierId: supplierId as Types.ObjectId,
-          //     productId: item._id,
-          //     updatedFields,
-          //   }
-          // );
+          await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
+            {
+              supplierId: totalSupplierId,
+              productId: item._id,
+              updatedFields,
+            }
+          );
         }
       }
     }
 
     res.status(StatusCodes.OK).send({ messge: "Product list fetched." });
   } catch (error: any) {
-    console.error("Cola integration anungoo product list fetch error:", error);
+    console.error("Cola integration total product list fetch error:", error);
     throw new BadRequestError("Something went wrong.");
   }
 });
 
-export { router as anungooProductsRouter };
+export { router as totalProductsRouter };

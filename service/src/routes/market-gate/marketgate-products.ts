@@ -17,19 +17,21 @@ import {
 
 const router = express.Router();
 
-router.get("/anungoo/product-list", async (req: Request, res: Response) => {
+router.get("/marketgate/product-list", async (req: Request, res: Response) => {
   try {
-    const anungoo = await Supplier.find({
+    const marketGate = await Supplier.find({
       type: "supplier",
-      holdingKey: "AG",
+      holdingKey: "MG",
     });
 
-    if (!anungoo) {
-      throw new BadRequestError("Anungoo supplier not found.");
+    if (!marketGate) {
+      throw new BadRequestError("MarketGate supplier not found.");
     }
 
-    const anungooPng = anungoo?.filter((item) => item?.vendorKey === "AGPNG");
-    const anungooIone = anungoo?.filter((item) => item?.vendorKey === "AGIONE");
+    const mgMgico = marketGate?.filter((item) => item?.vendorKey === "MGICO");
+    const mgNestle = marketGate?.filter(
+      (item) => item?.vendorKey === "MGNESTLE"
+    );
 
     const productsResponse = await AnungooAPIClient.getClient().post(
       `/api/ebazaar/getdataproductinfo`,
@@ -40,7 +42,7 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
 
     basProducts = basProducts.filter(
       (product) =>
-        product.business === "ag_nonfood" || product.business === "ag_food"
+        product.business === "mg_nonfood" || product.business === "mg_food"
     );
 
     if (basProducts.length === 0) {
@@ -48,7 +50,7 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
     }
 
     const existingProducts = await Product.find({
-      customerId: { $in: [anungooPng[0]?._id, anungooIone[0]?._id] },
+      customerId: { $in: [mgMgico[0]?._id, mgNestle[0]?._id] },
     });
 
     const existingEbProductsMap = existingProducts.reduce((map, item) => {
@@ -56,9 +58,9 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         const basIntegrationData = item.thirdPartyData.find(
           (data: any) =>
             data?.customerId?.toString() ===
-              (anungooPng[0]?._id as Types.ObjectId).toString() ||
+              (mgMgico[0]?._id as Types.ObjectId).toString() ||
             data?.customerId?.toString() ===
-              (anungooIone[0]?._id as Types.ObjectId).toString()
+              (mgNestle[0]?._id as Types.ObjectId).toString()
         );
 
         if (basIntegrationData) {
@@ -78,16 +80,14 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         basExistingProducts.push(item);
       }
     });
-    console.log(basNewProducts.length);
+
     if (basNewProducts.length > 0) {
       for (const item of basNewProducts) {
         const capacity = await convertCapacity(item.capacity);
         const sanitizedBarcode = await barcodeSanitizer(item.barcode);
 
         const supplierId =
-          item.business === "ag_nonfood"
-            ? anungooPng[0]?._id
-            : anungooIone[0]?._id;
+          item.business === "mg_nonfood" ? mgMgico[0]?._id : mgNestle[0]?._id;
 
         const eventPayload: any = {
           supplierId: supplierId as Types.ObjectId,
@@ -150,26 +150,27 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
           await eventDelay(500);
 
           const supplierId =
-            item.business === "ag_nonfood"
-              ? anungooPng[0]?._id
-              : anungooIone[0]?._id;
+            item.business === "mg_nonfood" ? mgMgico[0]?._id : mgNestle[0]?._id;
 
-          // await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
-          //   {
-          //     supplierId: supplierId as Types.ObjectId,
-          //     productId: item._id,
-          //     updatedFields,
-          //   }
-          // );
+          await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
+            {
+              supplierId: supplierId as Types.ObjectId,
+              productId: item._id,
+              updatedFields,
+            }
+          );
         }
       }
     }
 
     res.status(StatusCodes.OK).send({ messge: "Product list fetched." });
   } catch (error: any) {
-    console.error("Cola integration anungoo product list fetch error:", error);
+    console.error(
+      "Cola integration marketgate product list fetch error:",
+      error
+    );
     throw new BadRequestError("Something went wrong.");
   }
 });
 
-export { router as anungooProductsRouter };
+export { router as marketgateProductsRouter };

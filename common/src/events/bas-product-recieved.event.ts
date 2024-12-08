@@ -13,5 +13,6 @@ export interface BasProductRecievedEvent {
     sectorName?: string;
     business?: string;
     barcode?: string;
+    vendorId?: Types.ObjectId;
   };
 }

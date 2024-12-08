@@ -3,7 +3,7 @@ import { Product, ProductDoc, Promo } from "@ebazdev/product";
 import { Supplier } from "@ebazdev/customer";
 import { StatusCodes } from "http-status-codes";
 import { natsWrapper } from "../../nats-wrapper";
-import { Types, ObjectId } from "mongoose";
+import { Schema, Types, ObjectId } from "mongoose";
 import {
   basPromoMain,
   basPromoProducts,
@@ -17,34 +17,18 @@ import { BasPromoUpdatedEventPublisher } from "../../events/publisher/bas-promo-
 
 const router = express.Router();
 
-router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
+router.get("/total/promo-list", async (req: Request, res: Response) => {
   try {
-    const pageNumber = req.body.pageNumber || 0;
-
-    const anungoo = await Supplier.find({
+    const totalSupplier = await Supplier.findOne({
       type: "supplier",
-      holdingKey: "AG",
+      holdingKey: "TD",
     });
 
-    if (!anungoo || anungoo.length === 0) {
-      throw new Error("Supplier not found.");
-    }
-
-    const anungooPng = anungoo.find((item) => item?.vendorKey === "AGPNG");
-    const anungooIone = anungoo.find((item) => item?.vendorKey === "AGIONE");
-
-    if (!anungooPng || !anungooIone) {
-      throw new Error("Anungoo PNG or Ione supplier not found.");
-    }
-
-    const anungooPngId = anungooPng.id;
-    const anungooIoneId = anungooIone.id;
+    const totalCustomerId = totalSupplier?._id as Types.ObjectId;
 
     const promosResponse = await AnungooAPIClient.getClient().post(
-      "/api/ebazaar/getdatapromo",
-      {
-        pagenumber: pageNumber,
-      }
+      "/api/ebazaar/getdataproductinfo",
+      { company: "Coca Cola" }
     );
 
     const promoData = promosResponse?.data || {};
@@ -95,16 +79,14 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
       const { customerId: promoSupplierId, productIds: productIds1 } =
         await fetchEbazaarProductIds(
           promo.thirdPartyProducts,
-          anungooPngId,
-          anungooIoneId
+          totalCustomerId as unknown as Schema.Types.ObjectId
         );
       promo.products = productIds1;
 
       const { customerId: customerId2, productIds: productIds2 } =
         await fetchEbazaarProductIds(
           promo.thirdPartyGiftProducts,
-          anungooPngId,
-          anungooIoneId
+          totalCustomerId as unknown as Schema.Types.ObjectId
         );
       promo.giftProducts = productIds2;
       promo.tradeshops = promo.thirdPartyTradeshops;
@@ -160,7 +142,7 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).send({ status: "success" });
   } catch (error: any) {
-    console.error("Bas integration promo list get error:", error);
+    console.error("Total integration promo list get error:", error);
 
     return res.status(StatusCodes.BAD_REQUEST).send({
       status: "failure",
@@ -170,8 +152,7 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
 
 const fetchEbazaarProductIds = async (
   thirdPartyIds: number[],
-  anungooPngId: ObjectId,
-  anungooIoneId: ObjectId
+  totalCustomerId: ObjectId
 ): Promise<{ customerId: ObjectId | null; productIds: ObjectId[] }> => {
   if (!thirdPartyIds || thirdPartyIds.length === 0) {
     return { customerId: null, productIds: [] };
@@ -179,7 +160,7 @@ const fetchEbazaarProductIds = async (
 
   const products = (await Product.find({
     "thirdPartyData.productId": { $in: thirdPartyIds },
-    customerId: { $in: [anungooPngId, anungooIoneId] },
+    customerId: { $in: [totalCustomerId] },
   }).select("_id thirdPartyData.productId customerId")) as ProductDoc[];
 
   if (products.length === 0) {
@@ -255,5 +236,4 @@ const getUpdatedFields = (existingPromo: any, promo: any): any => {
 
   return updatedFields;
 };
-
-export { router as anungooPromosRouter };
+export { router as totalPromosRouter };

@@ -1,15 +1,14 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { BaseAPIClient } from "../shared/utils/cola-api-client";
+import { ColaAPIClient } from "../../utils/apiclients/cocacola-api-client";
 import { BadRequestError, NotFoundError } from "@ebazdev/core";
 import { Merchant } from "@ebazdev/customer";
 
 const router = express.Router();
-const colaClient = new BaseAPIClient();
 
 const fetchDataFromColaAPI = async (endpoint: string, body: object) => {
   try {
-    const response = await colaClient.post(endpoint, body);
+    const response = await ColaAPIClient.getClient().post(endpoint, body);
     return response?.data?.data ?? [];
   } catch (error: any) {
     if (error.response?.data?.err_msg === "no data") {

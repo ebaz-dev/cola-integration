@@ -1,17 +1,17 @@
 import { BaseAPIClient } from "@ebazdev/core";
-import { IntegrationBaseURI } from "./integration-uri";
+import { IntegrationBaseURI } from "../integration-uri";
 
-export class AnungooAPIClient extends BaseAPIClient {
-  private static client: AnungooAPIClient | null = null;
+export class ColaAPIClient extends BaseAPIClient {
+  private static client: ColaAPIClient | null = null;
 
   private readonly PATH_PREFIX = "/api/ebazaar";
 
   constructor() {
     super(
-      IntegrationBaseURI.anungooBaseURI,
+      IntegrationBaseURI.colaBaseURI,
       "/api/tokenbazaar",
       "bazaar",
-      "M18@46jkljkjkljlk#$2024AG"
+      "M8@46jkljkjkljlk#$2024"
     );
   }
 
@@ -22,10 +22,10 @@ export class AnungooAPIClient extends BaseAPIClient {
     });
   }
 
-  public static getClient(): AnungooAPIClient {
-    if (!AnungooAPIClient.client) {
-      AnungooAPIClient.client = new AnungooAPIClient();
+  public static getClient(): ColaAPIClient {
+    if (!ColaAPIClient.client) {
+      ColaAPIClient.client = new ColaAPIClient();
     }
-    return AnungooAPIClient.client;
+    return ColaAPIClient.client;
   }
 }

@@ -1,5 +1,5 @@
 import { BaseAPIClient } from "@ebazdev/core";
-import { IntegrationBaseURI } from "./integration-uri";
+import { IntegrationBaseURI } from "../integration-uri";
 
 export class AnungooAPIClient extends BaseAPIClient {
   private static client: AnungooAPIClient | null = null;

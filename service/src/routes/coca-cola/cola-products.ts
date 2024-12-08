@@ -7,8 +7,11 @@ import { natsWrapper } from "../../nats-wrapper";
 import { Types } from "mongoose";
 import { BasProductRecievedEventPublisher } from "../../events/publisher/bas-product-recieved-publisher";
 import { BasProductUpdatedEventPublisher } from "../../events/publisher/bas-product-updated-publisher";
-import { AnungooAPIClient } from "../../utils/apiclients/anungoo-api-client";
-import { BasProductData } from "../../shared/models/bas-product";
+import { ColaAPIClient } from "../../utils/apiclients/cocacola-api-client";
+import {
+  BasProductData,
+  ThirdPartyData,
+} from "../../shared/models/bas-product";
 import {
   convertCapacity,
   barcodeSanitizer,
@@ -17,52 +20,43 @@ import {
 
 const router = express.Router();
 
-router.get("/anungoo/product-list", async (req: Request, res: Response) => {
+router.get("/cola/product-list", async (req: Request, res: Response) => {
   try {
-    const anungoo = await Supplier.find({
+    const colaCustomer = await Supplier.findOne({
       type: "supplier",
-      holdingKey: "AG",
+      holdingKey: "MCSCC",
     });
 
-    if (!anungoo) {
-      throw new BadRequestError("Anungoo supplier not found.");
+    if (!colaCustomer) {
+      throw new BadRequestError("Coca Cola supplier not found.");
     }
 
-    const anungooPng = anungoo?.filter((item) => item?.vendorKey === "AGPNG");
-    const anungooIone = anungoo?.filter((item) => item?.vendorKey === "AGIONE");
+    const colaSupplierId = colaCustomer?._id as Types.ObjectId;
 
-    const productsResponse = await AnungooAPIClient.getClient().post(
+    const productsResponse = await ColaAPIClient.getClient().post(
       `/api/ebazaar/getdataproductinfo`,
       {}
     );
 
-    let basProducts: BasProductData[] = productsResponse?.data?.data || [];
-
-    basProducts = basProducts.filter(
-      (product) =>
-        product.business === "ag_nonfood" || product.business === "ag_food"
-    );
-
+    const basProducts: BasProductData[] = productsResponse?.data?.data || [];
     if (basProducts.length === 0) {
       throw new BadRequestError("No products from bas API.");
     }
 
-    const existingProducts = await Product.find({
-      customerId: { $in: [anungooPng[0]?._id, anungooIone[0]?._id] },
+    const existingEbProducts = await Product.find({
+      customerId: colaSupplierId,
     });
 
-    const existingEbProductsMap = existingProducts.reduce((map, item) => {
+    const existingEbProductsMap = existingEbProducts.reduce((map, item) => {
       if (item.thirdPartyData && Array.isArray(item.thirdPartyData)) {
-        const basIntegrationData = item.thirdPartyData.find(
-          (data: any) =>
-            data?.customerId?.toString() ===
-              (anungooPng[0]?._id as Types.ObjectId).toString() ||
-            data?.customerId?.toString() ===
-              (anungooIone[0]?._id as Types.ObjectId).toString()
+        const thirdPartyDataArray = item.thirdPartyData as ThirdPartyData[];
+
+        const colaIntegrationData = thirdPartyDataArray.find(
+          (data: ThirdPartyData) => data?.customerId.equals(colaSupplierId)
         );
 
-        if (basIntegrationData) {
-          map[basIntegrationData.productId] = item;
+        if (colaIntegrationData) {
+          map[colaIntegrationData.productId] = item;
         }
       }
       return map;
@@ -78,26 +72,20 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         basExistingProducts.push(item);
       }
     });
-    console.log(basNewProducts.length);
+
     if (basNewProducts.length > 0) {
       for (const item of basNewProducts) {
         const capacity = await convertCapacity(item.capacity);
         const sanitizedBarcode = await barcodeSanitizer(item.barcode);
 
-        const supplierId =
-          item.business === "ag_nonfood"
-            ? anungooPng[0]?._id
-            : anungooIone[0]?._id;
-
         const eventPayload: any = {
-          supplierId: supplierId as Types.ObjectId,
+          supplierId: colaSupplierId,
           basId: item.productid,
           productName: item.productname,
           brandName: item.brandname,
           incase: item.incase,
           sectorName: item.sectorname,
           barcode: sanitizedBarcode,
-          business: item.business,
         };
 
         if (capacity !== 0) {
@@ -149,27 +137,22 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         if (Object.keys(updatedFields).length > 0) {
           await eventDelay(500);
 
-          const supplierId =
-            item.business === "ag_nonfood"
-              ? anungooPng[0]?._id
-              : anungooIone[0]?._id;
-
-          // await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
-          //   {
-          //     supplierId: supplierId as Types.ObjectId,
-          //     productId: item._id,
-          //     updatedFields,
-          //   }
-          // );
+          await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
+            {
+              supplierId: colaSupplierId,
+              productId: item._id,
+              updatedFields,
+            }
+          );
         }
       }
     }
 
     res.status(StatusCodes.OK).send({ messge: "Product list fetched." });
   } catch (error: any) {
-    console.error("Cola integration anungoo product list fetch error:", error);
+    console.error("Cola integration cola product list fetch error:", error);
     throw new BadRequestError("Something went wrong.");
   }
 });
 
-export { router as anungooProductsRouter };
+export { router as colaProductsRouter };

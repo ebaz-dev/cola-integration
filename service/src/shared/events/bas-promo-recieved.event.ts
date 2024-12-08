@@ -1,9 +1,6 @@
 import { Types, ObjectId } from "mongoose";
 import { BasPromoSubjects } from "./bas-promo-event-subjects";
-import {
-  giftProductsPackage,
-  basPromoGiftProductsPackage,
-} from "../models/bas-promo";
+import { giftProductsPackage } from "../models/bas-promo";
 
 export interface BasPromoRecievedEvent {
   subject: BasPromoSubjects.BasPromoRecieved;
@@ -26,9 +23,5 @@ export interface BasPromoRecievedEvent {
     thirdPartyPromoTypeId: number;
     thirdPartyPromoType: string;
     thirdPartyPromoTypeCode: string;
-    thirdPartyProducts?: number[];
-    thirdPartyGiftProducts?: number[];
-    thirdPartyGiftProductPackage?: basPromoGiftProductsPackage;
-    thirdPartyTradeshops?: number[];
   };
 }

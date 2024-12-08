@@ -5,7 +5,6 @@ import { OrderConfirmedListener } from "./events/listener/order-confirmed-listen
 import { BaseAPIClient } from "./shared/utils/cola-api-client";
 import { OrderCreatedListener } from "./events/listener/order-created-listener";
 import { OrderPaymentMethodUpdatedListener } from "./events/listener/order-payment-method-updated-listener";
-import { MerchantCodeRegisteredListener } from "./events/listener/merchant-registered-listener";
 import cron from "node-cron";
 import axios from "axios";
 
@@ -88,7 +87,6 @@ const start = async () => {
     new OrderConfirmedListener(natsWrapper.client).listen();
     new OrderCreatedListener(natsWrapper.client).listen();
     new OrderPaymentMethodUpdatedListener(natsWrapper.client).listen();
-    new MerchantCodeRegisteredListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");
@@ -108,7 +106,7 @@ const start = async () => {
       "0 6 * * *",
       async () => {
         try {
-          console.log('**************************************');
+          console.log("**************************************");
           console.log("Running the cron job of merchant products.");
           await axios.get(
             `http://localhost:3000${apiPrefix}/merchant/product-list`
@@ -130,7 +128,7 @@ const start = async () => {
       "30 6 * * *",
       async () => {
         try {
-          console.log('**************************************');
+          console.log("**************************************");
           console.log("Running cron job for total promo list.");
           await axios.get(`http://localhost:3000${apiPrefix}/promo-list`);
           console.log("Promo list job executed successfully.");

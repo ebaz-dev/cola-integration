@@ -20,7 +20,6 @@ const router = express.Router();
 router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
   try {
     const pageNumber = req.body.pageNumber || 0;
-
     const anungoo = await Supplier.find({
       type: "supplier",
       holdingKey: "AG",
@@ -256,4 +255,4 @@ const getUpdatedFields = (existingPromo: any, promo: any): any => {
   return updatedFields;
 };
 
-export { router as anungooPromosRouter };
+export { router as marketgatePromosRouter };

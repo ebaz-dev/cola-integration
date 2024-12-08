@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { Product, ProductDoc, Promo } from "@ebazdev/product";
 import { Supplier } from "@ebazdev/customer";
+import { BadRequestError } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { natsWrapper } from "../../nats-wrapper";
 import { Types, ObjectId } from "mongoose";
@@ -11,40 +12,28 @@ import {
   basPromoGiftProductsPackage,
   basPromoTradeshops,
 } from "../../shared/models/bas-promo";
-import { AnungooAPIClient } from "../../utils/apiclients/anungoo-api-client";
+import { ColaAPIClient } from "../../utils/apiclients/cocacola-api-client";
 import { BasPromoRecievedEventPublisher } from "../../events/publisher/bas-promo-recieved-event-publisher";
 import { BasPromoUpdatedEventPublisher } from "../../events/publisher/bas-promo-updated-event-publisher";
 
 const router = express.Router();
 
-router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
+router.get("/promo-list", async (req: Request, res: Response) => {
   try {
-    const pageNumber = req.body.pageNumber || 0;
-
-    const anungoo = await Supplier.find({
+    const colaCustomer = await Supplier.findOne({
       type: "supplier",
-      holdingKey: "AG",
+      holdingKey: "MCSCC",
     });
 
-    if (!anungoo || anungoo.length === 0) {
-      throw new Error("Supplier not found.");
+    if (!colaCustomer) {
+      throw new BadRequestError("Coca Cola supplier not found.");
     }
 
-    const anungooPng = anungoo.find((item) => item?.vendorKey === "AGPNG");
-    const anungooIone = anungoo.find((item) => item?.vendorKey === "AGIONE");
+    const colaSupplierId = colaCustomer?._id as Types.ObjectId;
 
-    if (!anungooPng || !anungooIone) {
-      throw new Error("Anungoo PNG or Ione supplier not found.");
-    }
-
-    const anungooPngId = anungooPng.id;
-    const anungooIoneId = anungooIone.id;
-
-    const promosResponse = await AnungooAPIClient.getClient().post(
+    const promosResponse = await ColaAPIClient.getClient().post(
       "/api/ebazaar/getdatapromo",
-      {
-        pagenumber: pageNumber,
-      }
+      {}
     );
 
     const promoData = promosResponse?.data || {};
@@ -93,28 +82,16 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
         : [];
 
       const { customerId: promoSupplierId, productIds: productIds1 } =
-        await fetchEbazaarProductIds(
-          promo.thirdPartyProducts,
-          anungooPngId,
-          anungooIoneId
-        );
+        await fetchEbazaarProductIds(promo.thirdPartyProducts, colaSupplierId);
       promo.products = productIds1;
 
       const { customerId: customerId2, productIds: productIds2 } =
         await fetchEbazaarProductIds(
           promo.thirdPartyGiftProducts,
-          anungooPngId,
-          anungooIoneId
+          colaSupplierId
         );
       promo.giftProducts = productIds2;
       promo.tradeshops = promo.thirdPartyTradeshops;
-
-      if (!promoSupplierId) {
-        console.error("Supplier not found for promo:", promo.promoid);
-        continue;
-      }
-
-      promo.supplierId = promoSupplierId;
 
       const existingPromo = await Promo.findOne({
         "thirdPartyData.thirdPartyPromoId": promo.promoid,
@@ -160,7 +137,7 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).send({ status: "success" });
   } catch (error: any) {
-    console.error("Bas integration promo list get error:", error);
+    console.error("Cola integration promo list get error:", error);
 
     return res.status(StatusCodes.BAD_REQUEST).send({
       status: "failure",
@@ -170,8 +147,7 @@ router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
 
 const fetchEbazaarProductIds = async (
   thirdPartyIds: number[],
-  anungooPngId: ObjectId,
-  anungooIoneId: ObjectId
+  colaSupplierId: Types.ObjectId
 ): Promise<{ customerId: ObjectId | null; productIds: ObjectId[] }> => {
   if (!thirdPartyIds || thirdPartyIds.length === 0) {
     return { customerId: null, productIds: [] };
@@ -179,7 +155,7 @@ const fetchEbazaarProductIds = async (
 
   const products = (await Product.find({
     "thirdPartyData.productId": { $in: thirdPartyIds },
-    customerId: { $in: [anungooPngId, anungooIoneId] },
+    customerId: colaSupplierId,
   }).select("_id thirdPartyData.productId customerId")) as ProductDoc[];
 
   if (products.length === 0) {
@@ -256,4 +232,4 @@ const getUpdatedFields = (existingPromo: any, promo: any): any => {
   return updatedFields;
 };
 
-export { router as anungooPromosRouter };
+export { router as colaPromosRouter };
