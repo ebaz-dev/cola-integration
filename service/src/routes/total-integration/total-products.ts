@@ -20,7 +20,7 @@ import {
 
 const router = express.Router();
 
-router.get("/product-list", async (req: Request, res: Response) => {
+router.get("/total/product-list", async (req: Request, res: Response) => {
   try {
     const vendorName = req.body.vendorName;
 

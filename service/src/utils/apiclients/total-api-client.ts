@@ -8,7 +8,7 @@ export class TotalAPIClient extends BaseAPIClient {
 
   constructor() {
     super(
-      IntegrationBaseURI.colaBaseURI,
+      IntegrationBaseURI.totalBaseURI,
       "/api/tokenbazaar",
       "bazaar",
       "M8@46jkljkjkljlk#$2024TD"

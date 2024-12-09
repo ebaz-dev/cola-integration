@@ -176,7 +176,7 @@ const fetchEbazaarProductIds = async (
   if (!thirdPartyIds || thirdPartyIds.length === 0) {
     return { customerId: null, productIds: [] };
   }
-
+  
   const products = (await Product.find({
     "thirdPartyData.productId": { $in: thirdPartyIds },
     customerId: { $in: [anungooPngId, anungooIoneId] },

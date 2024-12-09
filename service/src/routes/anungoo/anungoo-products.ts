@@ -78,7 +78,7 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
         basExistingProducts.push(item);
       }
     });
-    console.log(basNewProducts.length);
+
     if (basNewProducts.length > 0) {
       for (const item of basNewProducts) {
         const capacity = await convertCapacity(item.capacity);
@@ -154,13 +154,13 @@ router.get("/anungoo/product-list", async (req: Request, res: Response) => {
               ? anungooPng[0]?._id
               : anungooIone[0]?._id;
 
-          // await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
-          //   {
-          //     supplierId: supplierId as Types.ObjectId,
-          //     productId: item._id,
-          //     updatedFields,
-          //   }
-          // );
+          await new BasProductUpdatedEventPublisher(natsWrapper.client).publish(
+            {
+              supplierId: supplierId as Types.ObjectId,
+              productId: item._id,
+              updatedFields,
+            }
+          );
         }
       }
     }
