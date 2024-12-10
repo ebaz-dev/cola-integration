@@ -52,22 +52,28 @@ router.get("/dashboard-data", async (req: Request, res: Response) => {
       rackList,
       printingsList,
     ] = await Promise.all([
+      //order list
       fetchDataFromColaAPI("/api/ebazaar/getdatasales", {
         tradeshopid: colaId,
       }),
+      //discount list
       fetchDataFromColaAPI("/api/ebazaar/getdatadiscount", {
         tradeshopid: colaId,
       }),
+      //sales performance
       fetchDataFromColaAPI("/api/ebazaar/getdatared", {
         tradeshopid: colaId,
       }),
+      //cooler
       fetchDataFromColaAPI("/api/ebazaar/getdatacooler", {
         tradeshopid: colaId,
         customerType,
       }),
+      //rack
       fetchDataFromColaAPI("/api/ebazaar/getdatampoe", {
         tradeshopid: colaId,
       }),
+      //printings
       fetchDataFromColaAPI("/api/ebazaar/getdataprinting", {
         tradeshopid: colaId,
       }),

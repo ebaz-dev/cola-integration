@@ -11,7 +11,7 @@ import {
   basPromoGiftProductsPackage,
   basPromoTradeshops,
 } from "../../shared/models/bas-promo";
-import { AnungooAPIClient } from "../../utils/apiclients/anungoo-api-client";
+import { TotalAPIClient } from "../../utils/apiclients/total-api-client";
 import { BasPromoRecievedEventPublisher } from "../../events/publisher/bas-promo-recieved-event-publisher";
 import { BasPromoUpdatedEventPublisher } from "../../events/publisher/bas-promo-updated-event-publisher";
 
@@ -26,9 +26,9 @@ router.get("/total/promo-list", async (req: Request, res: Response) => {
 
     const totalCustomerId = totalSupplier?._id as Types.ObjectId;
 
-    const promosResponse = await AnungooAPIClient.getClient().post(
-      "/api/ebazaar/getdataproductinfo",
-      { company: "Coca Cola" }
+    const promosResponse = await TotalAPIClient.getClient().post(
+      "/api/ebazaar/getdatapromo",
+      {}
     );
 
     const promoData = promosResponse?.data || {};
@@ -105,13 +105,13 @@ router.get("/total/promo-list", async (req: Request, res: Response) => {
       if (existingPromo && promo.promotypebycode) {
         const updatedFields = getUpdatedFields(existingPromo, promo);
 
-        if (Object.keys(updatedFields).length > 0) {
-          await new BasPromoUpdatedEventPublisher(natsWrapper.client).publish({
-            supplierId: promo.supplierId as unknown as Types.ObjectId,
-            id: existingPromo.id,
-            updatedFields,
-          });
-        }
+        // if (Object.keys(updatedFields).length > 0) {
+        //   await new BasPromoUpdatedEventPublisher(natsWrapper.client).publish({
+        //     supplierId: promo.supplierId as unknown as Types.ObjectId,
+        //     id: existingPromo.id,
+        //     updatedFields,
+        //   });
+        // }
       } else {
         if (
           (promo.products.length > 0 || promo.giftProducts.length > 0) &&
