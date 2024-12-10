@@ -17,13 +17,12 @@ router.get("/anungoo/merchant-shatlal", async (req: Request, res: Response) => {
     }
 
     const merchantData = await Merchant.findById(tradeshopid)
-
     if (!merchantData) {
       throw new BadRequestError("Merchant not found");
     }
 
     const tsId = merchantData.tradeShops?.find(
-      (item: any) => item.holdingKey === "MCSCC"
+      (item: any) => item.holdingKey === "AG"
     )?.tsId;
 
     if (!tsId) {

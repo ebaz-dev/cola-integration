@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AnungooAPIClient } from "../../utils/apiclients/anungoo-api-client";
+import { Merchant } from "@ebazdev/customer";
+import { BadRequestError, NotFoundError } from "@ebazdev/core";
 
 const router = express.Router();
 
@@ -14,6 +16,19 @@ router.get(
         return res.status(StatusCodes.BAD_REQUEST).send({
           message: "tradeshopid is required",
         });
+      }
+
+      const merchantData = await Merchant.findById(tradeshopid)
+      if (!merchantData) {
+        throw new BadRequestError("Merchant not found");
+      }
+
+      const tsId = merchantData.tradeShops?.find(
+        (item: any) => item.holdingKey === "MG"
+      )?.tsId;
+
+      if (!tsId) {
+        throw new BadRequestError("Trade shop ID not found");
       }
 
       const productsResponse = await AnungooAPIClient.getClient().post(
