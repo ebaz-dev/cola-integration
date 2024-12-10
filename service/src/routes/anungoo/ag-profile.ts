@@ -39,7 +39,7 @@ router.get("/anungoo/profile-data", async (req: Request, res: Response) => {
     );
 
     const profileData = profileResponse?.data?.data ?? [];
-
+    
     const filteredData = profileData.filter(
       (item: any) => item.htcompany === "AG"
     );
