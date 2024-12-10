@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { ColaAPIClient } from "../../utils/apiclients/cocacola-api-client";
+import { Merchant } from "@ebazdev/customer";
+import { BadRequestError, NotFoundError } from "@ebazdev/core";
 
 const router = express.Router();
 
@@ -14,10 +16,24 @@ router.get("/cola/merchant-shatlal", async (req: Request, res: Response) => {
       });
     }
 
+    const merchantData = await Merchant.findById(tradeshopid)
+
+    if (!merchantData) {
+      throw new BadRequestError("Merchant not found");
+    }
+
+    const tsId = merchantData.tradeShops?.find(
+      (item: any) => item.holdingKey === "MCSCC"
+    )?.tsId;
+
+    if (!tsId) {
+      throw new BadRequestError("Trade shop ID not found");
+    }
+
     const productsResponse = await ColaAPIClient.getClient().post(
       `/api/ebazaar/productremains`,
       {
-        tradeshopid: parseInt(tradeshopid),
+        tradeshopid: parseInt(tsId),
       }
     );
 
