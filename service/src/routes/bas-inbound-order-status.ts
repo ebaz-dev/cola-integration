@@ -11,7 +11,7 @@ import { thirdPartyAuthenticate } from "../utils/middlewares/thirdPartyAuthentic
 const router = express.Router();
 
 router.post(
-  "/order-status",
+  "/cola/order-status",
   thirdPartyAuthenticate,
   [
     body("orderId").not().isEmpty().withMessage("Order ID is required."),
@@ -62,4 +62,4 @@ router.post(
   }
 );
 
-export { router as orderStatusUpdateRouter };
+export { router as basInboundorderStatusUpdateRouter };

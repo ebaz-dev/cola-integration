@@ -18,7 +18,7 @@ import { BasPromoUpdatedEventPublisher } from "../../events/publisher/bas-promo-
 
 const router = express.Router();
 
-router.get("/promo-list", async (req: Request, res: Response) => {
+router.get("/cola/promo-list", async (req: Request, res: Response) => {
   try {
     const colaCustomer = await Supplier.findOne({
       type: "supplier",

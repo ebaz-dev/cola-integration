@@ -18,7 +18,7 @@ const fetchDataFromColaAPI = async (endpoint: string, body: object) => {
   }
 };
 
-router.get("/dashboard-data", async (req: Request, res: Response) => {
+router.get("/cola/dashboard-data", async (req: Request, res: Response) => {
   try {
     const { tradeshopId, customerType } = req.query;
     if (!tradeshopId || !customerType) {

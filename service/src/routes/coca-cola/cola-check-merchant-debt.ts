@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { checkMerchantDebt } from "../utils/merchant-debt";
+import { checkMerchantDebt } from "../../utils/merchant-debt";
 
 const router = express.Router();
 
-router.get("/merchant/debt", async (req: Request, res: Response) => {
+router.get("/cola/merchant/debt", async (req: Request, res: Response) => {
   try {
     const data = await checkMerchantDebt(req.query.merchantId as string);
 
@@ -17,4 +17,4 @@ router.get("/merchant/debt", async (req: Request, res: Response) => {
   }
 });
 
-export { router as merchantDebtRouter };
+export { router as colaMerchantDebtRouter };

@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { sendOrder } from "../utils/send-order";
+import { sendOrder } from "../../utils/send-order";
 
 const router = express.Router();
 
-router.post("/order/send", async (req: Request, res: Response) => {
+router.post("/cola/order/send", async (req: Request, res: Response) => {
     try {
         const { orderId } = req.body;
         await sendOrder(orderId);
@@ -17,4 +17,4 @@ router.post("/order/send", async (req: Request, res: Response) => {
     }
 });
 
-export { router as orderSendRouter };
+export { router as colaOrderSendRouter };

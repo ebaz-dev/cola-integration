@@ -17,7 +17,7 @@ import { BasPromoUpdatedEventPublisher } from "../../events/publisher/bas-promo-
 
 const router = express.Router();
 
-router.get("/anungoo/promo-list", async (req: Request, res: Response) => {
+router.get("/marketgate/promo-list", async (req: Request, res: Response) => {
   try {
     const pageNumber = req.body.pageNumber || 0;
     const anungoo = await Supplier.find({

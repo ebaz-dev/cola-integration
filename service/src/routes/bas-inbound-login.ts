@@ -13,7 +13,7 @@ const {
   COLA_INBOUND_ACCESS_TOKEN_SECRET,
 } = process.env;
 
-router.post("/login", (req: Request, res: Response) => {
+router.post("/cola/login", (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   if (
@@ -36,4 +36,4 @@ router.post("/login", (req: Request, res: Response) => {
   return res.status(StatusCodes.OK).json({ token: accessToken });
 });
 
-export { router as colaInboundLoginRouter };
+export { router as basInboundLoginRouter };

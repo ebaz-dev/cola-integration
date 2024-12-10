@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 
 const router = express.Router();
 
-router.get("/merchant/debt", async (req: Request, res: Response) => {
+router.get("/total/merchant/debt", async (req: Request, res: Response) => {
   try {
     return res.status(StatusCodes.OK).send({ data: {} });
   } catch (error) {
