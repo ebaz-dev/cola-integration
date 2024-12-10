@@ -29,11 +29,13 @@ import { orderSendRouter } from "./routes/order-send";
 import { colaProfileRouter } from "./routes/cola-get-profile";
 import { colaPaymentRouter } from "./routes/get-payment";
 import { merchantDebtRouter } from "./routes/check-merchant-debt";
+import { totalMerchantDebtRouter } from "./routes/total-integration/check-merchant-debt";
 
 dotenv.config();
 
 const apiPrefix = "/api/v1/integration/cola";
 const apiBasPrefix = "/api/v1/integration/bas";
+const apiTotalPrefix = "/api/v1/integration/total";
 
 const app = express();
 app.set("trust proxy", true);
@@ -69,6 +71,7 @@ app.use(apiBasPrefix, marketgatePromosRouter);
 app.use(apiBasPrefix, totalMerchantShatlalRouter);
 app.use(apiBasPrefix, totalProductsRouter);
 app.use(apiBasPrefix, totalPromosRouter);
+app.use(apiTotalPrefix, totalMerchantDebtRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();
