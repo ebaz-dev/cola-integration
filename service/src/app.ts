@@ -46,6 +46,8 @@ app.use(
 );
 
 app.use(apiPrefix, healthRouter);
+app.use(apiBasPrefix, healthRouter);
+
 app.use(apiPrefix, colaInboundLoginRouter);
 app.use(apiPrefix, orderStatusUpdateRouter);
 app.use(apiPrefix, orderSendRouter);
